@@ -1,0 +1,22 @@
+{
+  "name": "cs320-group-4",
+  "version": "1.0.0",
+  "description": "Skill-it project, Group 4",
+  "main": "index.js",
+  "devDependencies": {
+    "supabase": "^2.76.15"
+  },
+  "scripts": {
+    "test": "run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BraedenTurner22/cs320-group-4.git"
+  },
+  "author": "Group 4",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/BraedenTurner22/cs320-group-4/issues"
+  },
+  "homepage": "https://github.com/BraedenTurner22/cs320-group-4#readme"
+}
