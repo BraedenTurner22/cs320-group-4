@@ -1,20 +1,24 @@
-import { createClient } from '@/lib/supabase/server'
 import { jobs } from '@/lib/services/jobs'
 import { threads } from '@/lib/services/threads'
+import { profile } from '@/lib/services/profile'
 import JobCard from '@/components/jobs/JobCard'
 import ThreadList from '@/components/threads/ThreadList'
 import Button from '@/components/ui/Button'
 import Link from 'next/link'
 
 export default async function DashboardPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
+  let currentProfile: Awaited<ReturnType<typeof profile.getCurrent>> | null = null
   let myJobs: Awaited<ReturnType<typeof jobs.getByUser>> = []
   let myThreads: Awaited<ReturnType<typeof threads.getAll>> = []
 
   try {
-    myJobs = await jobs.getByUser(user!.id)
+    currentProfile = await profile.getCurrent()
+  } catch {
+    // Profile may not exist yet
+  }
+
+  try {
+    myJobs = await jobs.getByUser()
   } catch {
     // Supabase table may not exist yet
   }
@@ -29,7 +33,9 @@ export default async function DashboardPage() {
     <div className="flex flex-col gap-10">
       <div>
         <h1 className="text-3xl font-extrabold text-gray-900 mb-1">Dashboard</h1>
-        <p className="text-gray-500">Welcome back, {user!.email}</p>
+        <p className="text-gray-500">
+          Welcome back{currentProfile ? `, ${currentProfile.Username}` : ''}
+        </p>
       </div>
 
       <section>
@@ -42,7 +48,7 @@ export default async function DashboardPage() {
         {myJobs.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {myJobs.map((job) => (
-              <JobCard key={job.job_id} job={job} />
+              <JobCard key={job.id} job={job} />
             ))}
           </div>
         ) : (

@@ -1,60 +1,76 @@
 import { createClient } from '@/lib/supabase/server'
+import { profile } from '@/lib/services/profile'
 import type { MessageThread, Message, UserProfile } from '@/types'
 
-async function getUser() {
+async function getAuthProfile() {
   const supabase = await createClient()
-  const { data: { user }, error } = await supabase.auth.getUser()
-  if (error || !user) throw new Error('Not authenticated')
-  return { supabase, user }
+  const current = await profile.getCurrent()
+  return { supabase, profileId: current.id }
 }
 
 export const threads = {
   // Thread management
   async getAll(): Promise<MessageThread[]> {
-    const { supabase, user } = await getUser()
+    const { supabase, profileId } = await getAuthProfile()
+    // Get threads where this user is a member via the "Thread users" junction table
     const { data, error } = await supabase
-      .from('message_threads')
-      .select('*')
-      .contains('users', [user.id])
-      .eq('archived', false)
-      .order('created_on', { ascending: false })
+      .from('Thread users')
+      .select('"Message Thread"(*)')
+      .eq('user_id', profileId)
     if (error) throw error
-    return data as MessageThread[]
+    // Flatten: each row is { "Message Thread": {...} }
+    const threadList = (data ?? [])
+      .map((row) => (row as Record<string, unknown>)['Message Thread'] as MessageThread)
+      .filter((t) => !t.Archived)
+      .sort((a, b) => new Date(b.created_on).getTime() - new Date(a.created_on).getTime())
+    return threadList
   },
 
   async getOneByID(threadId: number): Promise<MessageThread> {
     const supabase = await createClient()
     const { data, error } = await supabase
-      .from('message_threads')
+      .from('Message Thread')
       .select('*')
-      .eq('thread_id', threadId)
+      .eq('id', threadId)
       .single()
     if (error) throw error
     return data as MessageThread
   },
 
-  async create(jobId: number, userIds: string[], threadName: string): Promise<MessageThread> {
+  async create(jobId: number, userIds: number[], threadName: string): Promise<MessageThread> {
     const supabase = await createClient()
     const { data, error } = await supabase
-      .from('message_threads')
+      .from('Message Thread')
       .insert({
         job: jobId,
-        users: userIds,
-        thread_name: threadName,
-        archived: false,
+        'Thread name': threadName,
+        Archived: false,
       })
       .select()
       .single()
     if (error) throw error
+
+    // Add users to the thread via "Thread users" junction table
+    if (userIds.length > 0) {
+      const userRows = userIds.map((userId) => ({
+        thread_id: data.id,
+        user_id: userId,
+      }))
+      const { error: userError } = await supabase
+        .from('Thread users')
+        .insert(userRows)
+      if (userError) throw userError
+    }
+
     return data as MessageThread
   },
 
   async archive(threadId: number): Promise<boolean> {
     const supabase = await createClient()
     const { error } = await supabase
-      .from('message_threads')
-      .update({ archived: true })
-      .eq('thread_id', threadId)
+      .from('Message Thread')
+      .update({ Archived: true })
+      .eq('id', threadId)
     if (error) throw error
     return true
   },
@@ -62,9 +78,9 @@ export const threads = {
   async rename(threadId: number, name: string): Promise<MessageThread> {
     const supabase = await createClient()
     const { data, error } = await supabase
-      .from('message_threads')
-      .update({ thread_name: name })
-      .eq('thread_id', threadId)
+      .from('Message Thread')
+      .update({ 'Thread name': name })
+      .eq('id', threadId)
       .select()
       .single()
     if (error) throw error
@@ -75,22 +91,22 @@ export const threads = {
   async getMessages(threadId: number): Promise<Message[]> {
     const supabase = await createClient()
     const { data, error } = await supabase
-      .from('messages')
+      .from('Message')
       .select('*')
-      .eq('thread_id', threadId)
+      .eq('message_thread', threadId)
       .order('sent_on', { ascending: true })
     if (error) throw error
     return data as Message[]
   },
 
   async sendMessage(threadId: number, content: string): Promise<Message> {
-    const { supabase, user } = await getUser()
+    const { supabase, profileId } = await getAuthProfile()
     const { data, error } = await supabase
-      .from('messages')
+      .from('Message')
       .insert({
-        thread_id: threadId,
-        content,
-        sender: user.id,
+        message_thread: threadId,
+        Content: content,
+        Sender: profileId,
       })
       .select()
       .single()
@@ -101,48 +117,43 @@ export const threads = {
   async deleteMessage(threadId: number, messageId: number): Promise<boolean> {
     const supabase = await createClient()
     const { error } = await supabase
-      .from('messages')
+      .from('Message')
       .delete()
-      .eq('message_id', messageId)
-      .eq('thread_id', threadId)
+      .eq('MessageId', messageId)
+      .eq('message_thread', threadId)
     if (error) throw error
     return true
   },
 
-  // Participants
+  // Participants (via "Thread users" junction table)
   async getUsers(threadId: number): Promise<UserProfile[]> {
     const supabase = await createClient()
-    const thread = await this.getOneByID(threadId)
     const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .in('uid', thread.users)
-    if (error) throw error
-    return data as unknown as UserProfile[]
-  },
-
-  async addUser(threadId: number, userId: string): Promise<MessageThread> {
-    const supabase = await createClient()
-    const thread = await this.getOneByID(threadId)
-    const updatedUsers = [...thread.users, userId]
-    const { data, error } = await supabase
-      .from('message_threads')
-      .update({ users: updatedUsers })
+      .from('Thread users')
+      .select('"Profile"(*)')
       .eq('thread_id', threadId)
-      .select()
-      .single()
     if (error) throw error
-    return data as MessageThread
+    return (data ?? []).map(
+      (row) => (row as Record<string, unknown>)['Profile'] as UserProfile
+    )
   },
 
-  async removeUser(threadId: number, userId: string): Promise<boolean> {
+  async addUser(threadId: number, userId: number): Promise<boolean> {
     const supabase = await createClient()
-    const thread = await this.getOneByID(threadId)
-    const updatedUsers = thread.users.filter((id) => id !== userId)
     const { error } = await supabase
-      .from('message_threads')
-      .update({ users: updatedUsers })
+      .from('Thread users')
+      .insert({ thread_id: threadId, user_id: userId })
+    if (error) throw error
+    return true
+  },
+
+  async removeUser(threadId: number, userId: number): Promise<boolean> {
+    const supabase = await createClient()
+    const { error } = await supabase
+      .from('Thread users')
+      .delete()
       .eq('thread_id', threadId)
+      .eq('user_id', userId)
     if (error) throw error
     return true
   },
@@ -151,7 +162,7 @@ export const threads = {
   async getByJob(jobId: number): Promise<MessageThread[]> {
     const supabase = await createClient()
     const { data, error } = await supabase
-      .from('message_threads')
+      .from('Message Thread')
       .select('*')
       .eq('job', jobId)
     if (error) throw error
@@ -159,14 +170,15 @@ export const threads = {
   },
 
   async getUnread(): Promise<MessageThread[]> {
-    const { supabase, user } = await getUser()
-    // TODO: requires an unread tracking table/column — returning all non-archived for now
+    const { supabase, profileId } = await getAuthProfile()
+    // Get non-archived threads for this user via junction table
     const { data, error } = await supabase
-      .from('message_threads')
-      .select('*')
-      .contains('users', [user.id])
-      .eq('archived', false)
+      .from('Thread users')
+      .select('"Message Thread"(*)')
+      .eq('user_id', profileId)
     if (error) throw error
-    return data as MessageThread[]
+    return (data ?? [])
+      .map((row) => (row as Record<string, unknown>)['Message Thread'] as MessageThread)
+      .filter((t) => !t.Archived)
   },
 }

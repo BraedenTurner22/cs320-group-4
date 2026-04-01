@@ -19,11 +19,7 @@ export default function JobsClient({ initialJobs, categories, skills }: Props) {
   const filtered = initialJobs.filter((job) => {
     if (filters.search) {
       const q = filters.search.toLowerCase()
-      if (
-        !job.title.toLowerCase().includes(q) &&
-        !(job.description ?? '').toLowerCase().includes(q)
-      )
-        return false
+      if (!(job.description ?? '').toLowerCase().includes(q)) return false
     }
     if (filters.category && job.category?.name !== filters.category) return false
     if (filters.completed !== undefined && job.completed !== filters.completed) return false
@@ -48,7 +44,7 @@ export default function JobsClient({ initialJobs, categories, skills }: Props) {
       {filtered.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((job) => (
-            <JobCard key={job.job_id} job={job} />
+            <JobCard key={job.id} job={job} />
           ))}
         </div>
       ) : (

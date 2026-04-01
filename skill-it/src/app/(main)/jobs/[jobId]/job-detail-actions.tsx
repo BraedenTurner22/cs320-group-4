@@ -9,7 +9,7 @@ type Props = {
   jobId: number
   isOwner: boolean
   isCompleted: boolean
-  pendingRequests: { username: string; email: string; uid?: string }[]
+  pendingRequests: { Username: string; Email: string; id: number }[]
 }
 
 export default function JobDetailActions({
@@ -36,7 +36,7 @@ export default function JobDetailActions({
     }
   }
 
-  async function handleAccept(userId: string) {
+  async function handleAccept(userId: number) {
     setLoading(true)
     try {
       const res = await fetch(`/api/jobs/${jobId}/accept/${userId}`, { method: 'POST' })
@@ -85,15 +85,15 @@ export default function JobDetailActions({
               <h3 className="font-semibold text-gray-800 mb-3">Pending Requests</h3>
               <div className="flex flex-col gap-2">
                 {pendingRequests.map((req) => (
-                  <Card key={req.uid ?? req.email}>
+                  <Card key={req.id}>
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium text-gray-900">{req.username}</p>
-                        <p className="text-sm text-gray-500">{req.email}</p>
+                        <p className="font-medium text-gray-900">{req.Username}</p>
+                        <p className="text-sm text-gray-500">{req.Email}</p>
                       </div>
                       <div className="flex gap-2">
                         <Button
-                          onClick={() => req.uid && handleAccept(req.uid)}
+                          onClick={() => handleAccept(req.id)}
                           disabled={loading}
                         >
                           Accept

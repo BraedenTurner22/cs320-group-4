@@ -15,37 +15,29 @@ export default function ThreadList({ threads }: ThreadListProps) {
 
   return (
     <div className="flex flex-col gap-3">
-      {threads.map((thread) => {
-        const lastMessage = thread.messages?.[thread.messages.length - 1]
-        return (
-          <Link key={thread.thread_id} href={`/messages/${thread.thread_id}`}>
-            <Card hover className="cursor-pointer">
-              <div className="flex items-center justify-between">
-                <div className="flex flex-col gap-1">
-                  <h4 className="font-semibold text-gray-900">
-                    {thread.thread_name}
-                  </h4>
-                  {lastMessage && (
-                    <p className="text-sm text-gray-500 line-clamp-1">
-                      {lastMessage.content}
-                    </p>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-400">
-                    Job #{thread.job}
-                  </span>
-                  {thread.archived && (
-                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
-                      Archived
-                    </span>
-                  )}
-                </div>
+      {threads.map((thread) => (
+        <Link key={thread.id} href={`/messages/${thread.id}`}>
+          <Card hover className="cursor-pointer">
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-1">
+                <h4 className="font-semibold text-gray-900">
+                  {thread['Thread name']}
+                </h4>
               </div>
-            </Card>
-          </Link>
-        )
-      })}
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-400">
+                  Job #{thread.job}
+                </span>
+                {thread.Archived && (
+                  <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
+                    Archived
+                  </span>
+                )}
+              </div>
+            </div>
+          </Card>
+        </Link>
+      ))}
     </div>
   )
 }
