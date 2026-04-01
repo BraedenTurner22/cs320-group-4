@@ -8,17 +8,16 @@ export type SupabaseUser = {
 }
 
 export type UserProfile = {
-  username: string
-  verified: boolean
-  banned: boolean
-  email: string
-  profile_picture?: string
-  description?: string
-  major?: string
-  year_of_graduation?: number
-  undergrad: boolean
-  skills?: Skill[]
-  message_threads?: MessageThread[]
+  id: number
+  auth_uid: string
+  created_at?: string
+  Username: string
+  Banned?: boolean
+  Email: string
+  Description?: string
+  Major?: string
+  Graduation_Year?: number
+  Is_Undergrad?: boolean
 }
 
 export type Skill = {
@@ -28,56 +27,44 @@ export type Skill = {
 }
 
 export type Category = {
-  category_id: number
+  id: number
   name: string
   explicit: boolean
 }
 
 export type Job = {
-  job_id: number
+  id: number
+  created_at?: string
+  posted_by: number
+  description?: string
+  completed: boolean
+  pending_requests?: number[]
+  accepted_workers?: number[]
+  // Joined relations (not direct columns)
   associated_skills?: Skill[]
   category?: Category
-  description?: string
-  header?: string
-  message_threads?: MessageThread[]
-  completed: boolean
-  posted_by: string
-  pending_requests?: string[]
-  accepted_workers?: string[]
-  title: string
-  created_at?: string
 }
 
 export type Message = {
-  message_id: number
-  content: string
+  MessageId: number
   sent_on: string
-  sender: string
+  Content: string
+  Sender: number
+  message_thread: number
 }
 
 export type MessageThread = {
-  thread_id: number
-  users: string[]
-  job: number
+  id: number
   created_on: string
-  thread_name: string
-  messages?: Message[]
-  archived: boolean
-}
-
-export type Review = {
-  review_id: number
-  from: string
-  to: string
-  description: string
-  rating: number
-  associated_job: number
+  job: number
+  'Thread name': string
+  Archived: boolean
 }
 
 export type JobFilters = {
   category?: string
   skills?: string[]
   completed?: boolean
-  userId?: string
+  userId?: number
   search?: string
 }

@@ -1,11 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
-import type { Job, Review, MessageThread, UserProfile } from '@/types'
+import { profile } from '@/lib/services/profile'
+import type { Job, MessageThread, UserProfile } from '@/types'
 
-async function getUser() {
+async function getAuthProfile() {
   const supabase = await createClient()
-  const { data: { user }, error } = await supabase.auth.getUser()
-  if (error || !user) throw new Error('Not authenticated')
-  return { supabase, user }
+  const current = await profile.getCurrent()
+  return { supabase, profileId: current.id }
 }
 
 export const jobs = {
@@ -13,95 +13,124 @@ export const jobs = {
   async getAll(): Promise<Job[]> {
     const supabase = await createClient()
     const { data, error } = await supabase
-      .from('jobs')
-      .select('*, associated_skills:job_skills(skill:skills(*)), category:categories(*)')
+      .from('Job')
+      .select('*, associated_skills:"Job-skills"("Skill"(*)), category:"Category-holder"("Category"(*))')
       .order('created_at', { ascending: false })
     if (error) throw error
-    return data as Job[]
+    // Flatten the nested category from junction table (Category-holder returns array, take first)
+    return (data ?? []).map((job) => ({
+      ...job,
+      category: job.category?.[0]?.Category ?? null,
+      associated_skills: (job.associated_skills ?? []).map((js: { Skill: unknown }) => js.Skill),
+    })) as Job[]
   },
 
   async getOneByID(jobId: number): Promise<Job> {
     const supabase = await createClient()
     const { data, error } = await supabase
-      .from('jobs')
-      .select('*, associated_skills:job_skills(skill:skills(*)), category:categories(*)')
-      .eq('job_id', jobId)
+      .from('Job')
+      .select('*, associated_skills:"Job-skills"("Skill"(*)), category:"Category-holder"("Category"(*))')
+      .eq('id', jobId)
       .single()
     if (error) throw error
-    return data as Job
+    return {
+      ...data,
+      category: data.category?.[0]?.Category ?? null,
+      associated_skills: (data.associated_skills ?? []).map((js: { Skill: unknown }) => js.Skill),
+    } as Job
   },
 
   async getByCategory(category: string): Promise<Job[]> {
     const supabase = await createClient()
     const { data, error } = await supabase
-      .from('jobs')
-      .select('*, associated_skills:job_skills(skill:skills(*)), category:categories!inner(*)')
-      .eq('categories.name', category)
+      .from('Job')
+      .select('*, associated_skills:"Job-skills"("Skill"(*)), category:"Category-holder"!inner("Category"!inner(*))')
+      .eq('"Category-holder"."Category".name', category)
     if (error) throw error
-    return data as Job[]
+    return (data ?? []).map((job) => ({
+      ...job,
+      category: job.category?.[0]?.Category ?? null,
+      associated_skills: (job.associated_skills ?? []).map((js: { Skill: unknown }) => js.Skill),
+    })) as Job[]
   },
 
   async getBySkills(skills: string[]): Promise<Job[]> {
     const supabase = await createClient()
     const { data, error } = await supabase
-      .from('jobs')
-      .select('*, associated_skills:job_skills!inner(skill:skills!inner(*)), category:categories(*)')
-      .in('job_skills.skills.name', skills)
+      .from('Job')
+      .select('*, associated_skills:"Job-skills"!inner("Skill"!inner(*)), category:"Category-holder"("Category"(*))')
+      .in('"Job-skills"."Skill".name', skills)
     if (error) throw error
-    return data as Job[]
+    return (data ?? []).map((job) => ({
+      ...job,
+      category: job.category?.[0]?.Category ?? null,
+      associated_skills: (job.associated_skills ?? []).map((js: { Skill: unknown }) => js.Skill),
+    })) as Job[]
   },
 
   async getByStatus(completed: boolean): Promise<Job[]> {
     const supabase = await createClient()
     const { data, error } = await supabase
-      .from('jobs')
-      .select('*, associated_skills:job_skills(skill:skills(*)), category:categories(*)')
+      .from('Job')
+      .select('*, associated_skills:"Job-skills"("Skill"(*)), category:"Category-holder"("Category"(*))')
       .eq('completed', completed)
     if (error) throw error
-    return data as Job[]
+    return (data ?? []).map((job) => ({
+      ...job,
+      category: job.category?.[0]?.Category ?? null,
+      associated_skills: (job.associated_skills ?? []).map((js: { Skill: unknown }) => js.Skill),
+    })) as Job[]
   },
 
-  async getByUser(userId: string): Promise<Job[]> {
-    const supabase = await createClient()
+  async getByUser(): Promise<Job[]> {
+    const { supabase, profileId } = await getAuthProfile()
     const { data, error } = await supabase
-      .from('jobs')
-      .select('*, associated_skills:job_skills(skill:skills(*)), category:categories(*)')
-      .eq('posted_by', userId)
+      .from('Job')
+      .select('*, associated_skills:"Job-skills"("Skill"(*)), category:"Category-holder"("Category"(*))')
+      .eq('posted_by', profileId)
     if (error) throw error
-    return data as Job[]
+    return (data ?? []).map((job) => ({
+      ...job,
+      category: job.category?.[0]?.Category ?? null,
+      associated_skills: (job.associated_skills ?? []).map((js: { Skill: unknown }) => js.Skill),
+    })) as Job[]
   },
 
   // Lifecycle
   async create(
-    title: string,
     description: string,
     categoryId: number,
-    skills: number[],
-    headerImage?: string
+    skills: number[]
   ): Promise<Job> {
-    const { supabase, user } = await getUser()
+    const { supabase, profileId } = await getAuthProfile()
 
     const { data: job, error } = await supabase
-      .from('jobs')
+      .from('Job')
       .insert({
-        title,
         description,
-        category: categoryId,
-        header: headerImage,
-        posted_by: user.id,
+        posted_by: profileId,
         completed: false,
       })
       .select()
       .single()
     if (error) throw error
 
+    // Link category via Category-holder junction
+    if (categoryId) {
+      const { error: catError } = await supabase
+        .from('Category-holder')
+        .insert({ job_id: job.id, category_id: categoryId })
+      if (catError) throw catError
+    }
+
+    // Link skills via Job-skills junction
     if (skills.length > 0) {
       const skillRows = skills.map((skillId) => ({
-        job_id: job.job_id,
+        job_id: job.id,
         skill_id: skillId,
       }))
       const { error: skillError } = await supabase
-        .from('job_skills')
+        .from('Job-skills')
         .insert(skillRows)
       if (skillError) throw skillError
     }
@@ -109,12 +138,12 @@ export const jobs = {
     return job as Job
   },
 
-  async update(jobId: number, fields: Partial<Job>): Promise<Job> {
+  async update(jobId: number, fields: Partial<Pick<Job, 'description' | 'completed'>>): Promise<Job> {
     const supabase = await createClient()
     const { data, error } = await supabase
-      .from('jobs')
+      .from('Job')
       .update(fields)
-      .eq('job_id', jobId)
+      .eq('id', jobId)
       .select()
       .single()
     if (error) throw error
@@ -123,7 +152,7 @@ export const jobs = {
 
   async delete(jobId: number): Promise<boolean> {
     const supabase = await createClient()
-    const { error } = await supabase.from('jobs').delete().eq('job_id', jobId)
+    const { error } = await supabase.from('Job').delete().eq('id', jobId)
     if (error) throw error
     return true
   },
@@ -131,88 +160,120 @@ export const jobs = {
   async markComplete(jobId: number): Promise<boolean> {
     const supabase = await createClient()
     const { error } = await supabase
-      .from('jobs')
+      .from('Job')
       .update({ completed: true })
-      .eq('job_id', jobId)
+      .eq('id', jobId)
     if (error) throw error
     return true
   },
 
-  // Worker requests
+  // Worker requests (pending_requests is an int8 array on Job)
   async requestWork(jobId: number): Promise<boolean> {
-    const { supabase, user } = await getUser()
+    const { supabase, profileId } = await getAuthProfile()
+    const { data: job, error: fetchError } = await supabase
+      .from('Job')
+      .select('pending_requests')
+      .eq('id', jobId)
+      .single()
+    if (fetchError) throw fetchError
+
+    const current: number[] = job.pending_requests ?? []
+    if (current.includes(profileId)) return true
+
     const { error } = await supabase
-      .from('job_requests')
-      .insert({ job_id: jobId, user_id: user.id })
+      .from('Job')
+      .update({ pending_requests: [...current, profileId] })
+      .eq('id', jobId)
     if (error) throw error
     return true
   },
 
   async withdrawRequest(jobId: number): Promise<boolean> {
-    const { supabase, user } = await getUser()
+    const { supabase, profileId } = await getAuthProfile()
+    const { data: job, error: fetchError } = await supabase
+      .from('Job')
+      .select('pending_requests')
+      .eq('id', jobId)
+      .single()
+    if (fetchError) throw fetchError
+
+    const current: number[] = job.pending_requests ?? []
     const { error } = await supabase
-      .from('job_requests')
-      .delete()
-      .eq('job_id', jobId)
-      .eq('user_id', user.id)
+      .from('Job')
+      .update({ pending_requests: current.filter((id) => id !== profileId) })
+      .eq('id', jobId)
     if (error) throw error
     return true
   },
 
   async getPendingRequests(jobId: number): Promise<UserProfile[]> {
     const supabase = await createClient()
+    const { data: job, error: fetchError } = await supabase
+      .from('Job')
+      .select('pending_requests')
+      .eq('id', jobId)
+      .single()
+    if (fetchError) throw fetchError
+
+    const requestIds: number[] = job.pending_requests ?? []
+    if (requestIds.length === 0) return []
+
     const { data, error } = await supabase
-      .from('job_requests')
-      .select('user:profiles(*)')
-      .eq('job_id', jobId)
+      .from('Profile')
+      .select('*')
+      .in('id', requestIds)
     if (error) throw error
-    return (data ?? []).map((r) => r.user) as unknown as UserProfile[]
+    return data as UserProfile[]
   },
 
-  async acceptWorker(jobId: number, userId: string): Promise<Job> {
+  async acceptWorker(jobId: number, profileId: number): Promise<Job> {
     const supabase = await createClient()
+    const { data: job, error: fetchError } = await supabase
+      .from('Job')
+      .select('pending_requests, accepted_workers')
+      .eq('id', jobId)
+      .single()
+    if (fetchError) throw fetchError
 
-    const { error: insertError } = await supabase
-      .from('job_workers')
-      .insert({ job_id: jobId, user_id: userId })
-    if (insertError) throw insertError
+    const pendingRequests: number[] = (job.pending_requests ?? []).filter(
+      (id: number) => id !== profileId
+    )
+    const acceptedWorkers: number[] = [...(job.accepted_workers ?? []), profileId]
 
-    const { error: deleteError } = await supabase
-      .from('job_requests')
-      .delete()
-      .eq('job_id', jobId)
-      .eq('user_id', userId)
-    if (deleteError) throw deleteError
+    const { error } = await supabase
+      .from('Job')
+      .update({ pending_requests: pendingRequests, accepted_workers: acceptedWorkers })
+      .eq('id', jobId)
+    if (error) throw error
 
     return this.getOneByID(jobId)
   },
 
-  async removeWorker(jobId: number, userId: string): Promise<boolean> {
+  async removeWorker(jobId: number, profileId: number): Promise<boolean> {
     const supabase = await createClient()
+    const { data: job, error: fetchError } = await supabase
+      .from('Job')
+      .select('accepted_workers')
+      .eq('id', jobId)
+      .single()
+    if (fetchError) throw fetchError
+
+    const acceptedWorkers: number[] = (job.accepted_workers ?? []).filter(
+      (id: number) => id !== profileId
+    )
     const { error } = await supabase
-      .from('job_workers')
-      .delete()
-      .eq('job_id', jobId)
-      .eq('user_id', userId)
+      .from('Job')
+      .update({ accepted_workers: acceptedWorkers })
+      .eq('id', jobId)
     if (error) throw error
     return true
   },
 
   // Related
-  async getReviews(jobId: number): Promise<Review[]> {
-    const supabase = await createClient()
-    const { data, error } = await supabase
-      .from('reviews')
-      .select('*')
-      .eq('associated_job', jobId)
-    if (error) throw error
-    return data as Review[]
-  },
-
   async getThreads(jobId: number): Promise<MessageThread[]> {
     const supabase = await createClient()
     const { data, error } = await supabase
-      .from('message_threads')
+      .from('Message Thread')
       .select('*')
       .eq('job', jobId)
     if (error) throw error

@@ -1,21 +1,31 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import JobForm from '@/components/jobs/JobForm'
+import type { Category, Skill } from '@/types'
 
 export default function NewJobPage() {
   const router = useRouter()
+  const [categories, setCategories] = useState<Category[]>([])
+  const [skills, setSkills] = useState<Skill[]>([])
 
-  // TODO: Fetch categories and skills from API when tables exist
-  const categories: { category_id: number; name: string; explicit: boolean }[] = []
-  const skills: { skill_id: number; name: string; explicit: boolean }[] = []
+  useEffect(() => {
+    async function load() {
+      const [catRes, skillRes] = await Promise.all([
+        fetch('/api/category'),
+        fetch('/api/skill'),
+      ])
+      if (catRes.ok) setCategories(await catRes.json())
+      if (skillRes.ok) setSkills(await skillRes.json())
+    }
+    load()
+  }, [])
 
   async function handleSubmit(data: {
-    title: string
     description: string
     categoryId: number
     skills: number[]
-    header?: string
   }) {
     const res = await fetch('/api/jobs', {
       method: 'POST',
@@ -27,7 +37,7 @@ export default function NewJobPage() {
       throw new Error(err.error || 'Failed to create job')
     }
     const job = await res.json()
-    router.push(`/jobs/${job.job_id}`)
+    router.push(`/jobs/${job.id}`)
   }
 
   return (

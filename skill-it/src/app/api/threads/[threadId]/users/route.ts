@@ -18,8 +18,8 @@ export async function POST(req: NextRequest, { params }: Params) {
   try {
     const { threadId } = await params
     const { userId } = await req.json()
-    const thread = await threads.addUser(Number(threadId), userId)
-    return NextResponse.json(thread)
+    await threads.addUser(Number(threadId), Number(userId))
+    return NextResponse.json({ success: true })
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Failed to add user'
     return NextResponse.json({ error: message }, { status: 400 })

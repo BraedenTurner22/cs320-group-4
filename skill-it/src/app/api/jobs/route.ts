@@ -6,15 +6,15 @@ export async function GET(req: NextRequest) {
     const { searchParams } = req.nextUrl
     const category = searchParams.get('category')
     const completed = searchParams.get('completed')
-    const userId = searchParams.get('userId')
+    const myJobs = searchParams.get('mine')
 
     let data
     if (category) {
       data = await jobs.getByCategory(category)
     } else if (completed !== null) {
       data = await jobs.getByStatus(completed === 'true')
-    } else if (userId) {
-      data = await jobs.getByUser(userId)
+    } else if (myJobs === 'true') {
+      data = await jobs.getByUser()
     } else {
       data = await jobs.getAll()
     }
@@ -30,11 +30,9 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const job = await jobs.create(
-      body.title,
       body.description,
       body.categoryId,
-      body.skills ?? [],
-      body.header
+      body.skills ?? []
     )
     return NextResponse.json(job, { status: 201 })
   } catch (err: unknown) {

@@ -15,7 +15,7 @@ export default function MessageBubble({ message, isCurrentUser }: MessageBubbleP
             : 'bg-gray-100 text-gray-900 rounded-bl-md'
         }`}
       >
-        <p>{message.content}</p>
+        <p>{message.Content}</p>
         <p
           className={`text-[10px] mt-1 ${
             isCurrentUser ? 'text-indigo-200' : 'text-gray-400'

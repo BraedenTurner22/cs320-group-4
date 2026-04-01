@@ -9,20 +9,16 @@ type JobFormProps = {
   categories: Category[]
   skills: Skill[]
   onSubmit: (data: {
-    title: string
     description: string
     categoryId: number
     skills: number[]
-    header?: string
   }) => Promise<void>
 }
 
 export default function JobForm({ categories, skills, onSubmit }: JobFormProps) {
-  const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [categoryId, setCategoryId] = useState<number>(0)
   const [selectedSkills, setSelectedSkills] = useState<number[]>([])
-  const [header, setHeader] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -34,19 +30,17 @@ export default function JobForm({ categories, skills, onSubmit }: JobFormProps) 
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    if (!title.trim()) {
-      setError('Title is required')
+    if (!description.trim()) {
+      setError('Description is required')
       return
     }
     setLoading(true)
     setError('')
     try {
       await onSubmit({
-        title,
         description,
         categoryId,
         skills: selectedSkills,
-        header: header || undefined,
       })
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to create job')
@@ -57,18 +51,11 @@ export default function JobForm({ categories, skills, onSubmit }: JobFormProps) 
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5 max-w-xl">
-      <Input
-        label="Title"
-        required
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="e.g. Help me move apartments"
-      />
-
       <div className="flex flex-col gap-1.5">
         <label className="text-sm font-medium text-gray-700">Description</label>
         <textarea
           className="rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-400 min-h-[100px]"
+          required
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Describe the gig..."
@@ -84,7 +71,7 @@ export default function JobForm({ categories, skills, onSubmit }: JobFormProps) 
         >
           <option value={0}>Select a category</option>
           {categories.map((c) => (
-            <option key={c.category_id} value={c.category_id}>
+            <option key={c.id} value={c.id}>
               {c.name}
             </option>
           ))}
@@ -112,13 +99,6 @@ export default function JobForm({ categories, skills, onSubmit }: JobFormProps) 
           </div>
         </div>
       )}
-
-      <Input
-        label="Header Image URL (optional)"
-        value={header}
-        onChange={(e) => setHeader(e.target.value)}
-        placeholder="https://..."
-      />
 
       {error && <p className="text-sm text-red-500">{error}</p>}
 
