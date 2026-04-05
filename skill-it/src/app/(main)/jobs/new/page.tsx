@@ -23,6 +23,7 @@ export default function NewJobPage() {
   }, [])
 
   async function handleSubmit(data: {
+    title: string
     description: string
     categoryId: number
     skills: number[]

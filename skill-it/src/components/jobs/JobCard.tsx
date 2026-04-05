@@ -15,7 +15,7 @@ export default function JobCard({ job }: JobCardProps) {
     <Card hover>
       <div className="flex flex-col gap-3">
         <div className="flex items-start justify-between">
-          <h3 className="font-bold text-lg text-gray-900">Job #{job.id}</h3>
+          <h3 className="font-bold text-lg text-gray-900">{job.title}</h3>
           <Badge color={job.completed ? 'gray' : 'green'}>
             {job.completed ? 'Completed' : 'Open'}
           </Badge>
