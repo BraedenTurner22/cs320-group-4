@@ -69,6 +69,7 @@ export default function LoginPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@umass.edu"
+            className="text-indigo-600"
           />
           <Input
             label="Password"
@@ -77,6 +78,7 @@ export default function LoginPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Your password"
+            className="text-indigo-600"
           />
 
           {error && <p className="text-sm text-red-500">{error}</p>}
