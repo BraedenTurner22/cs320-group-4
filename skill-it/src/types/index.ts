@@ -34,6 +34,7 @@ export type Category = {
 
 export type Job = {
   id: number
+  title: string
   created_at?: string
   posted_by: number
   title?: string

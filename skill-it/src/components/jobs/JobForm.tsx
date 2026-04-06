@@ -47,7 +47,12 @@ export default function JobForm({ categories, skills, onSubmit }: JobFormProps) 
       .filter((s) => selectedNames.has(s.name) && s.id != null)
       .map((s) => Number(s.id))
     try {
-      await onSubmit({ title, description, categoryId, skills: skillIds })
+      await onSubmit({
+        title,
+        description,
+        categoryId,
+        skills: selectedSkills,
+      })
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to create job')
     } finally {
