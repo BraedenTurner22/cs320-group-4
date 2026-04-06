@@ -7,9 +7,9 @@
   --color-edge: #2E2B27;
   --color-fg: #F0EDE9;
   --color-muted: #B3A9A0;
-  --color-ember: #EC6C04;
-  --color-ember-dark: #7A3800;
-  --color-ember-dim: #1E0E00;
+  --color-ember: #881124;
+  --color-ember-dark: #4A0A12;
+  --color-ember-dim: #1A0508;
   --color-success: #52B788;
   --color-danger: #D44F3E;
   --font-sans: var(--font-geist-sans);
@@ -25,6 +25,6 @@ body {
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: #0E0D0C; }
 ::-webkit-scrollbar-thumb { background: #2E2B27; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #EC6C04; }
+::-webkit-scrollbar-thumb:hover { background: #881124; }
 
 select option { background-color: #181614; color: #F0EDE9; }
