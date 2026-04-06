@@ -32,13 +32,13 @@ export async function POST(req: NextRequest) {
     const job = await jobs.create(
       body.title,
       body.description,
-      body.categoryId,
+      body.categoryId ?? null,
       body.skills ?? [],
       body.header
     )
     return NextResponse.json(job, { status: 201 })
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Failed to create job'
+    const message = err instanceof Error ? err.message : 'Failed to create job, missing required fields'
     return NextResponse.json({ error: message }, { status: 400 })
   }
 }
