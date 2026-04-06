@@ -1,5 +1,6 @@
 import { jobs } from '@/lib/services/jobs'
 import { profile } from '@/lib/services/profile'
+import type { UserProfile } from '@/types'
 import Badge from '@/components/ui/Badge'
 import Card from '@/components/ui/Card'
 import JobDetailActions from './job-detail-actions'
@@ -12,25 +13,34 @@ export default async function JobDetailPage({ params }: Params) {
   const job = await jobs.getOneByID(Number(jobId))
 
   let isOwner = false
+  let hasApplied = false
   try {
     const currentProfile = await profile.getCurrent()
     isOwner = currentProfile.id === job.posted_by
+    if (!isOwner) {
+      hasApplied =
+        (job.pending_requests ?? []).includes(currentProfile.id) ||
+        (job.accepted_workers ?? []).includes(currentProfile.id)
+    }
   } catch {
     // Not authenticated or no profile
   }
+
+  let poster: UserProfile | null = null
+  try { poster = await profile.getByID(job.posted_by) } catch { /* ignore */ }
+
+  let acceptedWorkerProfiles: { id: number; Username: string }[] = []
+  try {
+    const profiles = await jobs.getAcceptedWorkerProfiles(Number(jobId))
+    acceptedWorkerProfiles = profiles.map((p) => ({ id: p.id, Username: p.Username }))
+  } catch { /* ignore */ }
 
   let pendingRequests: { Username: string; Email: string; id: number }[] = []
   if (isOwner) {
     try {
       const reqs = await jobs.getPendingRequests(Number(jobId))
-      pendingRequests = reqs.map((r) => ({
-        Username: r.Username,
-        Email: r.Email,
-        id: r.id,
-      }))
-    } catch {
-      // Table may not exist
-    }
+      pendingRequests = reqs.map((r) => ({ Username: r.Username, Email: r.Email, id: r.id }))
+    } catch { /* table may not exist */ }
   }
 
   return (
@@ -42,31 +52,27 @@ export default async function JobDetailPage({ params }: Params) {
             {job.completed ? 'Completed' : 'Open'}
           </Badge>
         </div>
-        <p className="text-sm text-gray-400">Posted by #{job.posted_by}</p>
-      </div>
-
-      {job.category && (
-        <Badge color="violet">{job.category.name}</Badge>
-      )}
-
-      {job.associated_skills && job.associated_skills.length > 0 && (
+        <p className="text-xs text-muted/60">
+          Posted by <span className="text-muted">{poster?.Username ?? `#${job.posted_by}`}</span>
+        </p>
         <div className="flex flex-wrap gap-2">
-          {job.associated_skills.map((s) => (
-            <Badge key={s.skill_id} color="amber">{s.name}</Badge>
+          {job.category && <Badge color="orange">{job.category.name}</Badge>}
+          {job.associated_skills?.map((s, i) => (
+            <Badge key={s.id ?? `skill-${i}`} color="dim">{s.name}</Badge>
           ))}
         </div>
-      )}
+      </div>
 
       <Card>
-        <p className="text-gray-700 whitespace-pre-wrap">{job.description}</p>
+        <p className="text-fg/90 whitespace-pre-wrap leading-relaxed text-sm">{job.description}</p>
       </Card>
 
-      {job.accepted_workers && job.accepted_workers.length > 0 && (
+      {acceptedWorkerProfiles.length > 0 && (
         <div>
-          <h3 className="font-semibold text-gray-800 mb-2">Accepted Workers</h3>
+          <h3 className="font-semibold text-fg mb-2 text-sm">Accepted Workers</h3>
           <div className="flex flex-wrap gap-2">
-            {job.accepted_workers.map((w) => (
-              <Badge key={w} color="indigo">#{w}</Badge>
+            {acceptedWorkerProfiles.map((w) => (
+              <Badge key={w.id} color="green">{w.Username}</Badge>
             ))}
           </div>
         </div>
@@ -77,6 +83,7 @@ export default async function JobDetailPage({ params }: Params) {
         isOwner={isOwner}
         isCompleted={job.completed}
         pendingRequests={pendingRequests}
+        hasApplied={hasApplied}
       />
     </div>
   )

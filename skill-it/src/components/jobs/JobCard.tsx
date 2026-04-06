@@ -8,40 +8,67 @@ import Link from 'next/link'
 
 type JobCardProps = {
   job: Job
+  posterName?: string
+  showApplicantBadge?: boolean
 }
 
-export default function JobCard({ job }: JobCardProps) {
+export default function JobCard({ job, posterName, showApplicantBadge = false }: JobCardProps) {
+  const applicantCount = job.pending_requests?.length ?? 0
+  const showBadge = showApplicantBadge && applicantCount > 0
+
   return (
-    <Card hover>
-      <div className="flex flex-col gap-3">
-        <div className="flex items-start justify-between">
-          <h3 className="font-bold text-lg text-gray-900">{job.title}</h3>
-          <Badge color={job.completed ? 'gray' : 'green'}>
-            {job.completed ? 'Completed' : 'Open'}
-          </Badge>
+    <div className="relative h-full">
+      {/* Applicant notification badge */}
+      {showBadge && (
+        <div className="absolute -top-2 -right-2 z-10 min-w-[22px] h-[22px] rounded-full bg-ember flex items-center justify-center shadow-md shadow-ember/40 pointer-events-none">
+          <span className="text-[10px] font-bold text-white leading-none px-1">
+            {applicantCount}
+          </span>
         </div>
+      )}
 
-        {job.category && (
-          <Badge color="violet">{job.category.name}</Badge>
-        )}
-
-        {job.associated_skills && job.associated_skills.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {job.associated_skills.map((s) => (
-              <Badge key={s.skill_id} color="amber">{s.name}</Badge>
-            ))}
+      <Card hover className="h-full">
+        <div className="flex flex-col h-full gap-3">
+          {/* Title + status */}
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="font-bold text-base text-fg leading-snug line-clamp-2">
+              {job.title || `Job #${job.id}`}
+            </h3>
+            <Badge color={job.completed ? 'muted' : 'green'} >
+              {job.completed ? 'Completed' : 'Open'}
+            </Badge>
           </div>
-        )}
 
-        <p className="text-sm text-gray-500 line-clamp-2">{job.description}</p>
+          {/* Category */}
+          {job.category && (
+            <Badge color="orange">{job.category.name}</Badge>
+          )}
 
-        <div className="flex items-center justify-between pt-1">
-          <span className="text-xs text-gray-400">Posted by #{job.posted_by}</span>
-          <Link href={`/jobs/${job.id}`}>
-            <Button variant="secondary">View</Button>
-          </Link>
+          {/* Skills */}
+          {job.associated_skills && job.associated_skills.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {job.associated_skills.map((s, i) => (
+                <Badge key={s.id ?? `skill-${i}`} color="dim">{s.name}</Badge>
+              ))}
+            </div>
+          )}
+
+          {/* Description — grows to fill remaining space */}
+          <p className="flex-1 text-sm text-muted line-clamp-3 leading-relaxed">
+            {job.description}
+          </p>
+
+          {/* Footer — always at bottom */}
+          <div className="flex items-center justify-between pt-2 border-t border-edge/50">
+            <span className="text-xs text-muted/60">
+              {posterName ? `by ${posterName}` : `#${job.posted_by}`}
+            </span>
+            <Link href={`/jobs/${job.id}`}>
+              <Button variant="secondary" className="text-xs px-3 py-1.5">View</Button>
+            </Link>
+          </div>
         </div>
-      </div>
-    </Card>
+      </Card>
+    </div>
   )
 }

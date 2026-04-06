@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import type { JobFilters as Filters } from '@/types'
-import Input from '@/components/ui/Input'
 
 type JobFiltersProps = {
   categories: string[]
@@ -15,6 +14,7 @@ export default function JobFilters({ categories, skills, onChange }: JobFiltersP
   const [category, setCategory] = useState('')
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
   const [completed, setCompleted] = useState<boolean | undefined>(undefined)
+  const [searchFocused, setSearchFocused] = useState(false)
 
   function emit(overrides: Partial<Filters> = {}) {
     onChange({
@@ -33,23 +33,43 @@ export default function JobFilters({ categories, skills, onChange }: JobFiltersP
     emit({ skills: next })
   }
 
+  const selectClass =
+    'rounded-xl border border-edge bg-high px-3 py-2 text-sm text-fg outline-none focus:ring-2 focus:ring-ember/50 focus:border-ember/60 transition-all duration-200'
+
   return (
-    <div className="flex flex-col gap-4 rounded-2xl bg-gray-50 p-5 border border-gray-200">
-      <Input
-        label="Search"
-        placeholder="Search jobs..."
-        value={search}
-        onChange={(e) => {
-          setSearch(e.target.value)
-          emit({ search: e.target.value })
-        }}
-      />
+    <div className="flex flex-col gap-4 rounded-2xl bg-raised border border-edge p-5">
+      {/* Search with glow */}
+      <div className="relative">
+        {searchFocused && (
+          <div
+            className="absolute -inset-1 rounded-2xl opacity-100 blur-xl pointer-events-none transition-opacity duration-500"
+            style={{
+              background:
+                'radial-gradient(ellipse at 50% 50%, rgba(236,108,4,0.25) 0%, transparent 70%)',
+            }}
+          />
+        )}
+        <div className="relative flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-muted">Search</label>
+          <input
+            className="rounded-xl border border-edge bg-high px-4 py-2.5 text-sm text-fg placeholder:text-muted/50 outline-none focus:ring-2 focus:ring-ember/50 focus:border-ember/60 transition-all duration-200"
+            placeholder="Search jobs..."
+            value={search}
+            onFocus={() => setSearchFocused(true)}
+            onBlur={() => setSearchFocused(false)}
+            onChange={(e) => {
+              setSearch(e.target.value)
+              emit({ search: e.target.value })
+            }}
+          />
+        </div>
+      </div>
 
       <div className="flex flex-wrap gap-4">
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-gray-700">Category</label>
+          <label className="text-sm font-medium text-muted">Category</label>
           <select
-            className="rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-400"
+            className={selectClass}
             value={category}
             onChange={(e) => {
               setCategory(e.target.value)
@@ -64,9 +84,9 @@ export default function JobFilters({ categories, skills, onChange }: JobFiltersP
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-gray-700">Status</label>
+          <label className="text-sm font-medium text-muted">Status</label>
           <select
-            className="rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-400"
+            className={selectClass}
             value={completed === undefined ? '' : String(completed)}
             onChange={(e) => {
               const val = e.target.value === '' ? undefined : e.target.value === 'true'
@@ -82,17 +102,17 @@ export default function JobFilters({ categories, skills, onChange }: JobFiltersP
       </div>
 
       {skills.length > 0 && (
-        <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-gray-700">Skills</label>
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium text-muted">Skills</label>
           <div className="flex flex-wrap gap-2">
             {skills.map((s) => (
               <button
                 key={s}
                 onClick={() => toggleSkill(s)}
-                className={`rounded-full px-3 py-1 text-xs font-medium transition-all cursor-pointer ${
+                className={`rounded-full px-3 py-1 text-xs font-medium transition-all cursor-pointer border ${
                   selectedSkills.includes(s)
-                    ? 'bg-amber-500 text-white'
-                    : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                    ? 'bg-ember text-white border-ember shadow-sm shadow-ember/30'
+                    : 'bg-high text-muted border-edge hover:border-ember/50 hover:text-fg'
                 }`}
               >
                 {s}

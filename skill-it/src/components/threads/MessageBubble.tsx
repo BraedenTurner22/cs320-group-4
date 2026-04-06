@@ -3,22 +3,26 @@ import type { Message } from '@/types'
 type MessageBubbleProps = {
   message: Message
   isCurrentUser: boolean
+  senderName?: string
 }
 
-export default function MessageBubble({ message, isCurrentUser }: MessageBubbleProps) {
+export default function MessageBubble({ message, isCurrentUser, senderName }: MessageBubbleProps) {
   return (
-    <div className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
+    <div className={`flex flex-col gap-1 ${isCurrentUser ? 'items-end' : 'items-start'}`}>
+      {!isCurrentUser && senderName && (
+        <span className="text-[11px] text-muted px-1">{senderName}</span>
+      )}
       <div
-        className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm ${
+        className={`max-w-[72%] rounded-2xl px-4 py-2.5 text-sm ${
           isCurrentUser
-            ? 'bg-indigo-600 text-white rounded-br-md'
-            : 'bg-gray-100 text-gray-900 rounded-bl-md'
+            ? 'bg-ember text-white rounded-br-md shadow-md shadow-ember/20'
+            : 'bg-raised border border-edge text-fg rounded-bl-md'
         }`}
       >
-        <p>{message.Content}</p>
+        <p className="leading-relaxed">{message.Content}</p>
         <p
           className={`text-[10px] mt-1 ${
-            isCurrentUser ? 'text-indigo-200' : 'text-gray-400'
+            isCurrentUser ? 'text-white/60' : 'text-muted/60'
           }`}
         >
           {new Date(message.sent_on).toLocaleTimeString([], {

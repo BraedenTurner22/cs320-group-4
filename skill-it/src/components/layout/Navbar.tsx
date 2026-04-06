@@ -18,36 +18,38 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
   }
 
   return (
-    <nav className="sticky top-0 z-50 flex items-center justify-between border-b border-gray-200 bg-white/80 backdrop-blur-md px-6 py-3">
+    <nav className="sticky top-0 z-50 flex items-center justify-between border-b border-edge bg-high/80 backdrop-blur-md px-6 py-3">
       <Link href="/dashboard" className="flex items-center gap-2">
-        <span className="text-2xl font-extrabold bg-gradient-to-r from-indigo-600 via-violet-500 to-amber-500 bg-clip-text text-transparent">
-          Skill-It
+        <span className="text-2xl font-extrabold text-ember tracking-tight">
+          Skill<span className="text-fg">-It</span>
         </span>
       </Link>
 
       {isLoggedIn && (
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-1">
           <Link
             href="/jobs"
-            className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors"
+            className="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:text-fg hover:bg-raised transition-all duration-150"
           >
             Jobs
           </Link>
           <Link
             href="/messages"
-            className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors"
+            className="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:text-fg hover:bg-raised transition-all duration-150"
           >
             Messages
           </Link>
           <Link
             href="/dashboard"
-            className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors"
+            className="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:text-fg hover:bg-raised transition-all duration-150"
           >
             Dashboard
           </Link>
-          <Button variant="ghost" onClick={handleLogout}>
-            Log Out
-          </Button>
+          <div className="ml-2 pl-2 border-l border-edge">
+            <Button variant="ghost" onClick={handleLogout}>
+              Log Out
+            </Button>
+          </div>
         </div>
       )}
     </nav>

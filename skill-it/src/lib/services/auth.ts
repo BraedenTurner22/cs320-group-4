@@ -2,9 +2,13 @@ import { createClient } from '@/lib/supabase/server'
 import type { User, Session } from '@supabase/supabase-js'
 
 export const account = {
-  async signUp(email: string, password: string): Promise<User> {
+  async signUp(email: string, password: string, name: string): Promise<User> {
     const supabase = await createClient()
-    const { data, error } = await supabase.auth.signUp({ email, password })
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { name } },
+    })
     if (error) throw error
     if (!data.user) throw new Error('Sign up failed: no user returned')
     return data.user

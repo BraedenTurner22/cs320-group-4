@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { profile } from '@/lib/services/profile'
 import type { Job, MessageThread, UserProfile } from '@/types'
 
@@ -96,6 +97,36 @@ export const jobs = {
     })) as Job[]
   },
 
+  async getAppliedJobs(): Promise<Job[]> {
+    const { supabase, profileId } = await getAuthProfile()
+    const id = Number(profileId)
+    const { data, error } = await supabase
+      .from('Job')
+      .select('*, associated_skills:"Job-skills"("Skill"(*)), category:"Category-holder"("Category"(*))')
+      .filter('pending_requests', 'cs', `{${id}}`)
+    if (error) throw error
+    return (data ?? []).map((job) => ({
+      ...job,
+      category: job.category?.[0]?.Category ?? null,
+      associated_skills: (job.associated_skills ?? []).map((js: { Skill: unknown }) => js.Skill),
+    })) as Job[]
+  },
+
+  async getAcceptedJobs(): Promise<Job[]> {
+    const { supabase, profileId } = await getAuthProfile()
+    const id = Number(profileId)
+    const { data, error } = await supabase
+      .from('Job')
+      .select('*, associated_skills:"Job-skills"("Skill"(*)), category:"Category-holder"("Category"(*))')
+      .filter('accepted_workers', 'cs', `{${id}}`)
+    if (error) throw error
+    return (data ?? []).map((job) => ({
+      ...job,
+      category: job.category?.[0]?.Category ?? null,
+      associated_skills: (job.associated_skills ?? []).map((js: { Skill: unknown }) => js.Skill),
+    })) as Job[]
+  },
+
   // Lifecycle
   async create(
     title: string,
@@ -140,7 +171,7 @@ export const jobs = {
     return job as Job
   },
 
-  async update(jobId: number, fields: Partial<Pick<Job, 'description' | 'completed'>>): Promise<Job> {
+  async update(jobId: number, fields: Partial<Pick<Job, 'title' | 'description' | 'completed'>>): Promise<Job> {
     const supabase = await createClient()
     const { data, error } = await supabase
       .from('Job')
@@ -208,7 +239,50 @@ export const jobs = {
     return true
   },
 
+  async getAcceptedWorkerProfiles(jobId: number): Promise<UserProfile[]> {
+    const supabase = createAdminClient()
+    const { data: job, error: fetchError } = await supabase
+      .from('Job')
+      .select('accepted_workers')
+      .eq('id', jobId)
+      .single()
+    if (fetchError) throw fetchError
+
+    const workerIds: number[] = (job.accepted_workers ?? []).map(Number).filter(Boolean)
+    if (workerIds.length === 0) return []
+
+    const { data, error } = await supabase
+      .from('Profile')
+      .select('*')
+      .in('id', workerIds)
+    if (error) throw error
+    return (data ?? []) as UserProfile[]
+  },
+
   async getPendingRequests(jobId: number): Promise<UserProfile[]> {
+    // Use admin client for both queries: RLS may block reading the job's
+    // pending_requests array and reading other users' profiles
+    const supabase = createAdminClient()
+    const { data: job, error: fetchError } = await supabase
+      .from('Job')
+      .select('pending_requests')
+      .eq('id', jobId)
+      .single()
+    if (fetchError) throw fetchError
+
+    // int8 arrays come back as strings — coerce to numbers
+    const requestIds: number[] = (job.pending_requests ?? []).map(Number).filter(Boolean)
+    if (requestIds.length === 0) return []
+
+    const { data, error } = await supabase
+      .from('Profile')
+      .select('*')
+      .in('id', requestIds)
+    if (error) throw error
+    return (data ?? []) as UserProfile[]
+  },
+
+  async denyWorker(jobId: number, profileId: number): Promise<boolean> {
     const supabase = await createClient()
     const { data: job, error: fetchError } = await supabase
       .from('Job')
@@ -217,15 +291,13 @@ export const jobs = {
       .single()
     if (fetchError) throw fetchError
 
-    const requestIds: number[] = job.pending_requests ?? []
-    if (requestIds.length === 0) return []
-
-    const { data, error } = await supabase
-      .from('Profile')
-      .select('*')
-      .in('id', requestIds)
+    const pending = (job.pending_requests ?? []).filter((id: number) => id !== profileId)
+    const { error } = await supabase
+      .from('Job')
+      .update({ pending_requests: pending })
+      .eq('id', jobId)
     if (error) throw error
-    return data as UserProfile[]
+    return true
   },
 
   async acceptWorker(jobId: number, profileId: number): Promise<Job> {

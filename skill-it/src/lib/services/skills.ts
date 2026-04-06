@@ -28,7 +28,7 @@ export const skill = {
     const { data, error } = await supabase
       .from('Skill')
       .select('*')
-      .eq('skill_id', skillId)
+      .eq('id', skillId)
       .single()
     if (error) throw error
     return data as Skill
@@ -39,7 +39,7 @@ export const skill = {
     const { data, error } = await supabase
       .from('Skill')
       .update(fields)
-      .eq('skill_id', skillId)
+      .eq('id', skillId)
       .select()
       .single()
     if (error) throw error
@@ -48,7 +48,7 @@ export const skill = {
 
   async delete(skillId: number): Promise<boolean> {
     const supabase = await createClient()
-    const { error } = await supabase.from('Skill').delete().eq('skill_id', skillId)
+    const { error } = await supabase.from('Skill').delete().eq('id', skillId)
     if (error) throw error
     return true
   },

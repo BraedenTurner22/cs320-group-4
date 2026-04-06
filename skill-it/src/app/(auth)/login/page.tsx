@@ -4,6 +4,7 @@ import { useState, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
+import ShaderGradientBg from '@/components/ui/ShaderGradientBg'
 import Link from 'next/link'
 
 export default function LoginPage() {
@@ -54,12 +55,22 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-violet-50">
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-lg border border-gray-100">
-        <h1 className="text-3xl font-extrabold bg-gradient-to-r from-indigo-600 to-violet-500 bg-clip-text text-transparent mb-2">
-          Skill-It
-        </h1>
-        <p className="text-gray-500 mb-6">Welcome back</p>
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden">
+      {/* Full-screen shader gradient */}
+      <ShaderGradientBg />
+
+      {/* Dark overlay — light enough to let the gradient breathe */}
+      <div className="absolute inset-0 bg-surface/40" />
+
+      {/* Glass card */}
+      <div className="relative z-10 w-full max-w-md rounded-2xl border border-edge/60 bg-raised/80 backdrop-blur-xl p-8 shadow-2xl shadow-surface">
+        <div className="mb-6">
+          <h1 className="text-3xl font-extrabold tracking-tight mb-1">
+            <span className="text-ember">Skill</span>
+            <span className="text-fg">-It</span>
+          </h1>
+          <p className="text-muted text-sm">Welcome back — sign in to continue</p>
+        </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <Input
@@ -81,23 +92,27 @@ export default function LoginPage() {
             className="text-indigo-600"
           />
 
-          {error && <p className="text-sm text-red-500">{error}</p>}
+          {error && (
+            <p className="text-sm text-danger bg-danger/10 border border-danger/20 rounded-lg px-3 py-2">
+              {error}
+            </p>
+          )}
 
-          <Button type="submit" disabled={loading} className="w-full">
-            {loading ? 'Logging in...' : 'Log In'}
+          <Button type="submit" disabled={loading} className="w-full mt-1">
+            {loading ? 'Signing in...' : 'Sign In'}
           </Button>
         </form>
 
-        <div className="mt-4 flex flex-col items-center gap-2 text-sm">
+        <div className="mt-5 flex flex-col items-center gap-2 text-sm">
           <button
             onClick={handleForgotPassword}
-            className="text-indigo-600 hover:underline cursor-pointer"
+            className="text-muted hover:text-ember transition-colors cursor-pointer text-xs"
           >
             Forgot password?
           </button>
-          <p className="text-gray-500">
-            Don&apos;t have an account?{' '}
-            <Link href="/signup" className="font-medium text-indigo-600 hover:underline">
+          <p className="text-muted">
+            No account?{' '}
+            <Link href="/signup" className="font-medium text-ember hover:text-ember-dark transition-colors">
               Sign up
             </Link>
           </p>
