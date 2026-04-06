@@ -2,17 +2,22 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useParams } from 'next/navigation'
+import { useMessagingUnread } from '@/components/providers/MessagingUnreadProvider'
 import type { Message, MessageThread, UserProfile } from '@/types'
 import MessageBubble from '@/components/threads/MessageBubble'
 import MessageInput from '@/components/threads/MessageInput'
+import { markThreadUpTo } from '@/lib/messaging-read-cookie'
 
 export default function ThreadDetailPage() {
   const { threadId } = useParams<{ threadId: string }>()
+  const { refresh: refreshUnread } = useMessagingUnread()
   const [thread, setThread] = useState<MessageThread | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [currentProfileId, setCurrentProfileId] = useState<number>(0)
   const [userMap, setUserMap] = useState<Record<number, string>>({})
   const bottomRef = useRef<HTMLDivElement>(null)
+  const lastMarkedMaxRef = useRef<number | null>(null)
+  const numericThreadId = Number(threadId)
 
   const fetchMessages = useCallback(async () => {
     const res = await fetch(`/api/threads/${threadId}/messages`)
@@ -21,6 +26,8 @@ export default function ThreadDetailPage() {
 
   useEffect(() => {
     async function init() {
+      setMessages([])
+      setThread(null)
       // Current user
       try {
         const profileRes = await fetch('/api/profile')
@@ -56,6 +63,27 @@ export default function ThreadDetailPage() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  useEffect(() => {
+    lastMarkedMaxRef.current = null
+  }, [numericThreadId])
+
+  useEffect(() => {
+    if (!Number.isFinite(numericThreadId)) return
+    if (
+      messages.length > 0 &&
+      messages.some((m) => m.message_thread !== numericThreadId)
+    ) {
+      return
+    }
+    const maxId =
+      messages.length === 0 ? 0 : Math.max(...messages.map((m) => m.MessageId))
+    markThreadUpTo(numericThreadId, maxId)
+    if (lastMarkedMaxRef.current !== maxId) {
+      lastMarkedMaxRef.current = maxId
+      void refreshUnread()
+    }
+  }, [messages, numericThreadId, refreshUnread])
 
   async function handleSend(content: string) {
     const res = await fetch(`/api/threads/${threadId}/messages`, {

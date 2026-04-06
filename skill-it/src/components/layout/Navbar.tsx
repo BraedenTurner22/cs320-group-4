@@ -2,6 +2,8 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useMessagingUnread } from '@/components/providers/MessagingUnreadProvider'
+import UnreadBadge from '@/components/threads/UnreadBadge'
 import Button from '@/components/ui/Button'
 
 type NavbarProps = {
@@ -10,6 +12,7 @@ type NavbarProps = {
 
 export default function Navbar({ isLoggedIn }: NavbarProps) {
   const router = useRouter()
+  const unread = useMessagingUnread()
 
   async function handleLogout() {
     await fetch('/api/auth/logout', { method: 'POST' })
@@ -33,12 +36,18 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
           >
             Jobs
           </Link>
-          <Link
-            href="/messages"
-            className="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:text-fg hover:bg-raised transition-all duration-150"
-          >
-            Messages
-          </Link>
+          <span className="relative inline-flex items-center">
+            <Link
+              href="/messages"
+              className="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:text-fg hover:bg-raised transition-all duration-150"
+            >
+              Messages
+            </Link>
+            <UnreadBadge
+              count={unread.totalUnread}
+              className="absolute -right-0.5 -top-0.5 scale-90"
+            />
+          </span>
           <Link
             href="/dashboard"
             className="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:text-fg hover:bg-raised transition-all duration-150"

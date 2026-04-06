@@ -1,10 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useMessagingUnread } from '@/components/providers/MessagingUnreadProvider'
 import type { MessageThread } from '@/types'
 import ThreadList from '@/components/threads/ThreadList'
 
 export default function MessagesPage() {
+  const { unreadByThread } = useMessagingUnread()
   const [threadsList, setThreadsList] = useState<MessageThread[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -31,7 +33,7 @@ export default function MessagesPage() {
       {loading ? (
         <p className="text-sm text-muted/60">Loading threads...</p>
       ) : (
-        <ThreadList threads={threadsList} />
+        <ThreadList threads={threadsList} unreadByThread={unreadByThread} />
       )}
     </div>
   )
