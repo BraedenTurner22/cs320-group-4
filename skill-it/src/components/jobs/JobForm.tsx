@@ -51,7 +51,7 @@ export default function JobForm({ categories, skills, onSubmit }: JobFormProps) 
         title,
         description,
         categoryId,
-        skills: selectedSkills,
+        skills: skillIds,
       })
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to create job')

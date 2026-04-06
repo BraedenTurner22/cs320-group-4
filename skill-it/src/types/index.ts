@@ -37,7 +37,6 @@ export type Job = {
   title: string
   created_at?: string
   posted_by: number
-  title?: string
   description?: string
   completed: boolean
   pending_requests?: number[]
