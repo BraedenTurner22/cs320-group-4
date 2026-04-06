@@ -17,8 +17,12 @@ export default async function MainLayout({
       className="min-h-screen"
       style={{
         background: `
-          radial-gradient(ellipse 70% 55% at 88% 2%, rgba(236,108,4,0.18) 0%, transparent 55%),
-          radial-gradient(ellipse 50% 40% at 5% 95%, rgba(58,47,65,0.22) 0%, transparent 55%),
+          radial-gradient(ellipse 56% 44% at 88% 2%, rgba(136,17,36,0.18) 0%, transparent 55%),
+          radial-gradient(ellipse 40% 32% at 5% 95%, rgba(136,17,36,0.16) 0%, transparent 55%),
+          radial-gradient(ellipse 40% 32% at 14% 12%, rgba(136,17,36,0.12) 0%, transparent 55%),
+          radial-gradient(ellipse 56% 44% at 62% 38%, rgba(136,17,36,0.1) 0%, transparent 55%),
+          radial-gradient(ellipse 40% 32% at 94% 72%, rgba(136,17,36,0.14) 0%, transparent 55%),
+          radial-gradient(ellipse 56% 44% at 32% 88%, rgba(74,10,18,0.14) 0%, transparent 55%),
           #0E0D0C
         `,
       }}
