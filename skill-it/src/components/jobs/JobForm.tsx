@@ -9,6 +9,7 @@ type JobFormProps = {
   categories: Category[]
   skills: Skill[]
   onSubmit: (data: {
+    title: string
     description: string
     categoryId: number
     skills: number[]
@@ -16,6 +17,7 @@ type JobFormProps = {
 }
 
 export default function JobForm({ categories, skills, onSubmit }: JobFormProps) {
+  const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [categoryId, setCategoryId] = useState<number>(0)
   const [selectedSkills, setSelectedSkills] = useState<number[]>([])
@@ -30,6 +32,10 @@ export default function JobForm({ categories, skills, onSubmit }: JobFormProps) 
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
+    if (!title.trim()){
+      setError('Title is required')
+      return
+    }
     if (!description.trim()) {
       setError('Description is required')
       return
@@ -38,6 +44,7 @@ export default function JobForm({ categories, skills, onSubmit }: JobFormProps) 
     setError('')
     try {
       await onSubmit({
+        title,
         description,
         categoryId,
         skills: selectedSkills,
@@ -51,6 +58,16 @@ export default function JobForm({ categories, skills, onSubmit }: JobFormProps) 
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5 max-w-xl">
+      <div className="flex flex-col gap-1.5">
+        <label className="text-sm font-medium text-gray-700">Title</label>
+        <textarea
+          className="rounded-xl border border-gray-300 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-400 min-h-[100px]"
+          required
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Short title for the gig..."
+        />
+      </div>
       <div className="flex flex-col gap-1.5">
         <label className="text-sm font-medium text-gray-700">Description</label>
         <textarea

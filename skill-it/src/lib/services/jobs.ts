@@ -98,6 +98,7 @@ export const jobs = {
 
   // Lifecycle
   async create(
+    title: string,
     description: string,
     categoryId: number,
     skills: number[]
@@ -107,6 +108,7 @@ export const jobs = {
     const { data: job, error } = await supabase
       .from('Job')
       .insert({
+        title,
         description,
         posted_by: profileId,
         completed: false,
