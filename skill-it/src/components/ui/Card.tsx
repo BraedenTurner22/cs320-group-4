@@ -7,8 +7,10 @@ type CardProps = {
 export default function Card({ children, hover = false, className = '' }: CardProps) {
   return (
     <div
-      className={`rounded-2xl border border-gray-200 bg-white p-5 shadow-sm ${
-        hover ? 'transition-all duration-200 hover:shadow-md hover:-translate-y-0.5' : ''
+      className={`rounded-2xl border border-edge bg-raised p-5 ${
+        hover
+          ? 'transition-all duration-200 hover:border-ember/40 hover:shadow-lg hover:shadow-ember/5 hover:-translate-y-0.5'
+          : ''
       } ${className}`}
     >
       {children}

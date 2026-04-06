@@ -21,7 +21,7 @@ export type UserProfile = {
 }
 
 export type Skill = {
-  skill_id: number
+  id: number
   name: string
   explicit: boolean
 }
@@ -36,6 +36,7 @@ export type Job = {
   id: number
   created_at?: string
   posted_by: number
+  title?: string
   description?: string
   completed: boolean
   pending_requests?: number[]

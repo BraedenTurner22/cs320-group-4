@@ -30,6 +30,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const job = await jobs.create(
+      body.title,
       body.description,
       body.categoryId,
       body.skills ?? []

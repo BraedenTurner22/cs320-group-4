@@ -23,6 +23,7 @@ export default function NewJobPage() {
   }, [])
 
   async function handleSubmit(data: {
+    title: string
     description: string
     categoryId: number
     skills: number[]
@@ -42,7 +43,10 @@ export default function NewJobPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-3xl font-extrabold text-gray-900">Post a New Gig</h1>
+      <div>
+        <h1 className="text-3xl font-extrabold text-fg tracking-tight">Post a New Gig</h1>
+        <p className="text-muted text-sm mt-1">Fill out the details below to find the right person</p>
+      </div>
       <JobForm categories={categories} skills={skills} onSubmit={handleSubmit} />
     </div>
   )

@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import type { UserProfile, Skill, MessageThread } from '@/types'
 
 /**
@@ -22,11 +23,12 @@ async function getAuthUserProfile() {
   }
 
   // Auto-create profile for new auth users
+  const metaName = user.user_metadata?.name as string | undefined
   const { data: created, error: createError } = await supabase
     .from('Profile')
     .insert({
       auth_uid: user.id,
-      Username: user.email?.split('@')[0] ?? 'user',
+      Username: metaName ?? user.email?.split('@')[0] ?? 'user',
       Email: user.email ?? '',
       Banned: false,
       Is_Undergrad: true,
@@ -55,12 +57,13 @@ export const profile = {
     return profile
   },
 
-  async getByID(id: number): Promise<UserProfile> {
-    const supabase = await createClient()
+  async getByID(id: number | string): Promise<UserProfile> {
+    // Use admin client so RLS doesn't block reading other users' profiles
+    const supabase = createAdminClient()
     const { data, error } = await supabase
       .from('Profile')
       .select('*')
-      .eq('id', id)
+      .eq('id', Number(id))
       .single()
     if (error) throw error
     return data as UserProfile

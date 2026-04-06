@@ -133,9 +133,9 @@ export const threads = {
       .select('"Profile"(*)')
       .eq('thread_id', threadId)
     if (error) throw error
-    return (data ?? []).map(
-      (row) => (row as Record<string, unknown>)['Profile'] as UserProfile
-    )
+    return (data ?? [])
+      .map((row) => (row as Record<string, unknown>)['Profile'] as UserProfile)
+      .filter(Boolean)
   },
 
   async addUser(threadId: number, userId: number): Promise<boolean> {
