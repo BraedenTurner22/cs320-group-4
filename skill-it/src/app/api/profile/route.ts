@@ -1,10 +1,14 @@
+import { createClient } from '@/lib/supabase/server'
+import { resolveProfilePictureSignedUrl } from '@/lib/profile-picture-signed-url'
 import { profile } from '@/lib/services/profile'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET() {
   try {
+    const supabase = await createClient()
     const current = await profile.getCurrent()
-    return NextResponse.json(current)
+    const profile_picture = await resolveProfilePictureSignedUrl(supabase, current.profile_picture)
+    return NextResponse.json({ ...current, profile_picture })
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Failed to get profile'
     return NextResponse.json({ error: message }, { status: 401 })

@@ -50,7 +50,6 @@ export default function MessagesPage() {
               const ids = new Set<number>()
               ids.add(job.posted_by)
               for (const id of job.accepted_workers ?? []) ids.add(id)
-              for (const id of job.pending_requests ?? []) ids.add(id)
               participants[jobId] = [...ids]
             }
           } catch {

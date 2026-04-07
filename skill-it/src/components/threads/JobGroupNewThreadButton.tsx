@@ -124,8 +124,7 @@ export default function JobGroupNewThreadButton({
               New group chat
             </h2>
             <p className="mt-1 text-sm text-muted">
-              Includes {userIds.length} people on this gig (poster, accepted workers, and pending
-              applicants).
+              Includes the {userIds.length} people assigned to this job.
             </p>
             <form onSubmit={(e) => void handleSubmit(e)} className="mt-4 flex flex-col gap-3">
               <label className="flex flex-col gap-1.5">
