@@ -180,18 +180,18 @@ export default function ThreadDetailPage() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-10rem)]">
+    <div className="flex h-[calc(100dvh-8rem)] flex-col">
       {/* Thread header */}
       <div className="relative border-b border-edge pb-4 mb-4">
         {thread && !renamingThread && (
           <button
             type="button"
             onClick={beginRename}
-            className="absolute right-0 top-0 flex size-10 items-center justify-center rounded-xl border border-edge bg-raised text-muted transition-colors hover:border-ember/40 hover:bg-high hover:text-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ember/50 focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+            className="absolute right-0 top-0.5 flex size-11 items-center justify-center rounded-xl border border-edge bg-raised text-muted transition-colors hover:border-ember/40 hover:bg-high hover:text-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ember/50 focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
             aria-label="Edit thread name"
           >
             <svg
-              className="size-5"
+              className="size-6"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -287,7 +287,7 @@ export default function ThreadDetailPage() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto flex flex-col gap-2 pb-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pb-2">
         {messages.length === 0 && (
           <p className="text-center text-muted/50 text-sm py-8">No messages yet — say hello!</p>
         )}
@@ -306,8 +306,8 @@ export default function ThreadDetailPage() {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
-      <div className="border-t border-edge pt-4">
+      {/* Input — bottom of column aligns with viewport via height calc (nav + main py-8) */}
+      <div className="shrink-0 border-t border-edge pt-4 pb-0">
         <MessageInput onSend={handleSend} />
       </div>
     </div>
