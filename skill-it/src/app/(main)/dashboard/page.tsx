@@ -13,11 +13,20 @@ export default async function DashboardPage() {
   let acceptedJobs: Awaited<ReturnType<typeof jobs.getAcceptedJobs>> = []
   let myThreads: Awaited<ReturnType<typeof threads.getAll>> = []
 
-  try { currentProfile = await profile.getCurrent() } catch { /* no profile yet */ }
-  try { myJobs = await jobs.getByUser() } catch { /* table may not exist */ }
-  try { appliedJobs = await jobs.getAppliedJobs() } catch { /* table may not exist */ }
-  try { acceptedJobs = await jobs.getAcceptedJobs() } catch { /* table may not exist */ }
-  try { myThreads = await threads.getAll() } catch { /* table may not exist */ }
+  const [profileResult, myJobsResult, appliedJobsResult, acceptedJobsResult, myThreadsResult] =
+    await Promise.allSettled([
+      profile.getCurrent(),
+      jobs.getByUser(),
+      jobs.getAppliedJobs(),
+      jobs.getAcceptedJobs(),
+      threads.getAll(),
+    ])
+
+  if (profileResult.status === 'fulfilled') currentProfile = profileResult.value
+  if (myJobsResult.status === 'fulfilled') myJobs = myJobsResult.value
+  if (appliedJobsResult.status === 'fulfilled') appliedJobs = appliedJobsResult.value
+  if (acceptedJobsResult.status === 'fulfilled') acceptedJobs = acceptedJobsResult.value
+  if (myThreadsResult.status === 'fulfilled') myThreads = myThreadsResult.value
 
   return (
     <div className="flex flex-col gap-10">

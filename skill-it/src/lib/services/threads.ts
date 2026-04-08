@@ -189,52 +189,82 @@ export const threads = {
   },
 
   async getMessagingMeta(): Promise<ThreadMessagingMeta[]> {
-    const threadList = await this.getAll()
-    const auth = await getAuthProfile()
-    if (!auth?.profileId) {
-      throw new Error("Not logged in")
+    const { supabase, profileId } = await getAuthProfile()
+
+    // Single query to get thread IDs for this user
+    const { data: threadData, error: threadError } = await supabase
+      .from('Thread users')
+      .select('"Message Thread"(id, Archived)')
+      .eq('user_id', profileId)
+    if (threadError) throw threadError
+
+    const threadIds = (threadData ?? [])
+      .map((row) => (row as Record<string, unknown>)['Message Thread'] as { id: number; Archived: boolean })
+      .filter((t) => t && !t.Archived)
+      .map((t) => t.id)
+
+    if (threadIds.length === 0) return []
+
+    // Single bulk query for latest messages across all threads, grouped in JS
+    const { data: messages, error: msgError } = await supabase
+      .from('Message')
+      .select('MessageId, Sender, message_thread')
+      .in('message_thread', threadIds)
+      .order('MessageId', { ascending: false })
+    if (msgError) throw msgError
+
+    const latestByThread = new Map<number, Pick<Message, 'MessageId' | 'Sender'>>()
+    for (const msg of (messages ?? []) as Pick<Message, 'MessageId' | 'Sender' | 'message_thread'>[]) {
+      if (!latestByThread.has(msg.message_thread)) {
+        latestByThread.set(msg.message_thread, { MessageId: msg.MessageId, Sender: msg.Sender })
+      }
     }
-    const { supabase } = auth
-    return Promise.all(
-      threadList.map(async (t) => {
-        const { data, error } = await supabase
-          .from('Message')
-          .select('MessageId, Sender')
-          .eq('message_thread', t.id)
-          .order('MessageId', { ascending: false })
-          .limit(1)
-          .maybeSingle()
-        if (error) throw error
-        if (!data) {
-          return { threadId: t.id, latestMessageId: 0, latestSenderId: null }
-        }
-        const row = data as Pick<Message, 'MessageId' | 'Sender'>
-        return {
-          threadId: t.id,
-          latestMessageId: row.MessageId,
-          latestSenderId: row.Sender,
-        }
-      }),
-    )
+
+    return threadIds.map((id) => {
+      const latest = latestByThread.get(id)
+      return {
+        threadId: id,
+        latestMessageId: latest?.MessageId ?? 0,
+        latestSenderId: latest?.Sender ?? null,
+      }
+    })
   },
 
   async getUnreadCounts(lastReadByThread: Record<number, number>): Promise<Record<number, number>> {
     const { supabase, profileId } = await getAuthProfile()
-    const threadList = await this.getAll()
+
+    // Single query to get thread IDs for this user
+    const { data: threadData, error: threadError } = await supabase
+      .from('Thread users')
+      .select('"Message Thread"(id, Archived)')
+      .eq('user_id', profileId)
+    if (threadError) throw threadError
+
+    const threadIds = (threadData ?? [])
+      .map((row) => (row as Record<string, unknown>)['Message Thread'] as { id: number; Archived: boolean })
+      .filter((t) => t && !t.Archived)
+      .map((t) => t.id)
+
+    if (threadIds.length === 0) return {}
+
     const counts: Record<number, number> = {}
-    await Promise.all(
-      threadList.map(async (t) => {
-        const lastRead = lastReadByThread[t.id] ?? 0
-        const { count, error } = await supabase
-          .from('Message')
-          .select('*', { count: 'exact', head: true })
-          .eq('message_thread', t.id)
-          .gt('MessageId', lastRead)
-          .neq('Sender', profileId)
-        if (error) throw error
-        counts[t.id] = count ?? 0
-      }),
-    )
+    for (const id of threadIds) counts[id] = 0
+
+    // Single bulk query: fetch all non-self messages across all threads, count in JS
+    const { data: messages, error: msgError } = await supabase
+      .from('Message')
+      .select('MessageId, message_thread, Sender')
+      .in('message_thread', threadIds)
+      .neq('Sender', profileId)
+    if (msgError) throw msgError
+
+    for (const msg of (messages ?? []) as Pick<Message, 'MessageId' | 'message_thread' | 'Sender'>[]) {
+      const lastRead = lastReadByThread[msg.message_thread] ?? 0
+      if (msg.MessageId > lastRead) {
+        counts[msg.message_thread] = (counts[msg.message_thread] ?? 0) + 1
+      }
+    }
+
     return counts
   },
 }

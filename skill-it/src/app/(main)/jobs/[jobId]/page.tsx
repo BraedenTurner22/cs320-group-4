@@ -10,38 +10,39 @@ type Params = { params: Promise<{ jobId: string }> }
 export default async function JobDetailPage({ params }: Params) {
   const { jobId } = await params
 
-  const job = await jobs.getOneByID(Number(jobId))
+  // Fetch job and current user in parallel — neither depends on the other
+  const [job, currentProfileResult] = await Promise.all([
+    jobs.getOneByID(Number(jobId)),
+    profile.getCurrent().catch(() => null),
+  ])
 
   let isOwner = false
   let hasApplied = false
-  try {
-    const currentProfile = await profile.getCurrent()
-    isOwner = currentProfile.id === job.posted_by
+  if (currentProfileResult) {
+    isOwner = currentProfileResult.id === job.posted_by
     if (!isOwner) {
       hasApplied =
-        (job.pending_requests ?? []).includes(currentProfile.id) ||
-        (job.accepted_workers ?? []).includes(currentProfile.id)
+        (job.pending_requests ?? []).includes(currentProfileResult.id) ||
+        (job.accepted_workers ?? []).includes(currentProfileResult.id)
     }
-  } catch {
-    // Not authenticated or no profile
   }
 
-  let poster: UserProfile | null = null
-  try { poster = await profile.getByID(job.posted_by) } catch { /* ignore */ }
+  // Now fetch poster, accepted workers, and (if owner) pending requests in parallel
+  const [posterResult, acceptedProfilesResult, pendingReqsResult] = await Promise.allSettled([
+    profile.getByID(job.posted_by),
+    jobs.getAcceptedWorkerProfiles(Number(jobId)),
+    isOwner ? jobs.getPendingRequests(Number(jobId)) : Promise.resolve([]),
+  ])
 
-  let acceptedWorkerProfiles: { id: number; Username: string }[] = []
-  try {
-    const profiles = await jobs.getAcceptedWorkerProfiles(Number(jobId))
-    acceptedWorkerProfiles = profiles.map((p) => ({ id: p.id, Username: p.Username }))
-  } catch { /* ignore */ }
-
-  let pendingRequests: { Username: string; Email: string; id: number }[] = []
-  if (isOwner) {
-    try {
-      const reqs = await jobs.getPendingRequests(Number(jobId))
-      pendingRequests = reqs.map((r) => ({ Username: r.Username, Email: r.Email, id: r.id }))
-    } catch { /* table may not exist */ }
-  }
+  const poster: UserProfile | null = posterResult.status === 'fulfilled' ? posterResult.value : null
+  const acceptedWorkerProfiles =
+    acceptedProfilesResult.status === 'fulfilled'
+      ? acceptedProfilesResult.value.map((p) => ({ id: p.id, Username: p.Username }))
+      : []
+  const pendingRequests =
+    pendingReqsResult.status === 'fulfilled'
+      ? pendingReqsResult.value.map((r) => ({ Username: r.Username, Email: r.Email, id: r.id }))
+      : []
 
   return (
     <div className="flex flex-col gap-6 max-w-3xl">
