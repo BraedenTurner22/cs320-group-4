@@ -1,3 +1,5 @@
+import { createAdminClient } from '@/lib/supabase/admin'
+import { resolveProfilePictureSignedUrl } from '@/lib/profile-picture-signed-url'
 import { threads } from '@/lib/services/threads'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -7,7 +9,14 @@ export async function GET(_req: NextRequest, { params }: Params) {
   try {
     const { threadId } = await params
     const users = await threads.getUsers(Number(threadId))
-    return NextResponse.json(users)
+    const admin = createAdminClient()
+    const withAvatars = await Promise.all(
+      users.map(async (u) => ({
+        ...u,
+        profile_picture: await resolveProfilePictureSignedUrl(admin, u.profile_picture),
+      })),
+    )
+    return NextResponse.json(withAvatars)
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Failed to get users'
     return NextResponse.json({ error: message }, { status: 500 })

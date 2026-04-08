@@ -131,17 +131,25 @@ export const threads = {
     return true
   },
 
-  // Participants (via "Thread users" junction table)
+  // Participants: member ids via session, full Profile via admin (RLS often hides others' profile_picture).
   async getUsers(threadId: number): Promise<UserProfile[]> {
-    const supabase = await createClient()
+    const { supabase, profileId } = await getAuthProfile()
+    const { data: membership, error: memErr } = await supabase
+      .from('Thread users')
+      .select('thread_id')
+      .eq('thread_id', threadId)
+      .eq('user_id', profileId)
+      .maybeSingle()
+    if (memErr) throw memErr
+    if (!membership) throw new Error('Not a member of this thread')
+
     const { data, error } = await supabase
       .from('Thread users')
-      .select('"Profile"(*)')
+      .select('user_id')
       .eq('thread_id', threadId)
     if (error) throw error
-    return (data ?? [])
-      .map((row) => (row as Record<string, unknown>)['Profile'] as UserProfile)
-      .filter(Boolean)
+    const ids = [...new Set((data ?? []).map((row) => row.user_id as number))]
+    return Promise.all(ids.map((id) => profile.getByID(id)))
   },
 
   async addUser(threadId: number, userId: number): Promise<boolean> {

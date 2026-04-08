@@ -18,6 +18,7 @@ export default function ThreadDetailPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [currentProfileId, setCurrentProfileId] = useState<number>(0)
   const [userMap, setUserMap] = useState<Record<number, string>>({})
+  const [avatarByUserId, setAvatarByUserId] = useState<Record<number, string | null>>({})
   const bottomRef = useRef<HTMLDivElement>(null)
   const lastMarkedMaxRef = useRef<number | null>(null)
   const renameInputRef = useRef<HTMLInputElement>(null)
@@ -39,6 +40,8 @@ export default function ThreadDetailPage() {
       setThread(null)
       setJobTitle(null)
       setJobLoaded(false)
+      setUserMap({})
+      setAvatarByUserId({})
       setRenamingThread(false)
       setRenameError(null)
       // Current user
@@ -73,8 +76,13 @@ export default function ThreadDetailPage() {
       if (usersRes.ok) {
         const users: UserProfile[] = await usersRes.json()
         const map: Record<number, string> = {}
-        users.filter(Boolean).forEach((u) => { map[u.id] = u.Username })
+        const avatars: Record<number, string | null> = {}
+        users.filter(Boolean).forEach((u) => {
+          map[u.id] = u.Username
+          avatars[u.id] = u.profile_picture ?? null
+        })
         setUserMap(map)
+        setAvatarByUserId(avatars)
       }
 
       await fetchMessages()
@@ -283,14 +291,18 @@ export default function ThreadDetailPage() {
         {messages.length === 0 && (
           <p className="text-center text-muted/50 text-sm py-8">No messages yet — say hello!</p>
         )}
-        {messages.map((msg) => (
-          <MessageBubble
-            key={msg.MessageId}
-            message={msg}
-            isCurrentUser={msg.Sender === currentProfileId}
-            senderName={msg.Sender !== currentProfileId ? userMap[msg.Sender] : undefined}
-          />
-        ))}
+        {messages.map((msg) => {
+          const name = userMap[msg.Sender] ?? 'User'
+          return (
+            <MessageBubble
+              key={msg.MessageId}
+              message={msg}
+              isCurrentUser={msg.Sender === currentProfileId}
+              senderName={name}
+              senderAvatarUrl={avatarByUserId[msg.Sender]}
+            />
+          )
+        })}
         <div ref={bottomRef} />
       </div>
 
