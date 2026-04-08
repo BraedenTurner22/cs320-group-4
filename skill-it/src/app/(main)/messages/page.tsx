@@ -1,9 +1,9 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useMessagingUnread } from '@/components/providers/MessagingUnreadProvider'
-import type { Job, MessageThread } from '@/types'
-import MessagesJobGroups from '@/components/threads/MessagesJobGroups'
+import type { MessageThread } from '@/types'
+import ThreadList from '@/components/threads/ThreadList'
 
 export default function MessagesPage() {
   const { unreadByThread } = useMessagingUnread()
@@ -85,6 +85,7 @@ export default function MessagesPage() {
           jobParticipantsByJobId={jobParticipantsByJobId}
           onThreadCreated={() => void loadThreads()}
         />
+        <ThreadList threads={threadsList} unreadByThread={unreadByThread} />
       )}
     </div>
   )
