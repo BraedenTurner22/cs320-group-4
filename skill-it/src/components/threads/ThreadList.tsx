@@ -7,9 +7,18 @@ import UnreadBadge from '@/components/threads/UnreadBadge'
 type ThreadListProps = {
   threads: MessageThread[]
   unreadByThread?: Record<number, number>
+  /** When set (e.g. Messages page), show job title under thread name with larger type; else `Job #id`. */
+  jobTitleByJobId?: Record<number, string>
+  /** When true with `jobTitleByJobId`, second line shows “Loading…” until titles are ready. */
+  jobTitlesLoading?: boolean
 }
 
-export default function ThreadList({ threads, unreadByThread = {} }: ThreadListProps) {
+export default function ThreadList({
+  threads,
+  unreadByThread = {},
+  jobTitleByJobId,
+  jobTitlesLoading = false,
+}: ThreadListProps) {
   if (threads.length === 0) {
     return <p className="text-sm text-muted/60 py-4">No threads yet.</p>
   }
@@ -23,7 +32,11 @@ export default function ThreadList({ threads, unreadByThread = {} }: ThreadListP
               <h4 className="font-medium text-fg text-sm group-hover:text-ember transition-colors">
                 {thread['Thread name']}
               </h4>
-              <span className="text-xs text-muted/60">Job #{thread.job}</span>
+              <span className="text-muted text-[calc(0.75rem+2pt)]">
+                {jobTitleByJobId !== undefined && jobTitlesLoading
+                  ? 'Loading...'
+                  : (jobTitleByJobId?.[thread.job] ?? `Job #${thread.job}`)}
+              </span>
             </div>
             <div className="flex items-center gap-2">
               {thread.Archived && (

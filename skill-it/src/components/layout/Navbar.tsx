@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useMessagingUnread } from '@/components/providers/MessagingUnreadProvider'
+import NavbarProfileMenu from '@/components/layout/NavbarProfileMenu'
 import UnreadBadge from '@/components/threads/UnreadBadge'
 import Button from '@/components/ui/Button'
 
@@ -54,10 +55,8 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
           >
             Dashboard
           </Link>
-          <div className="ml-2 pl-2 border-l border-edge">
-            <Button variant="ghost" onClick={handleLogout}>
-              Log Out
-            </Button>
+          <div className="ml-2 flex items-center gap-2 pl-2 border-l border-edge">
+            <NavbarProfileMenu onLogout={handleLogout} />
           </div>
         </div>
       )}
