@@ -2,6 +2,12 @@ import { createClient } from '@/lib/supabase/server'
 import { profile } from '@/lib/services/profile'
 import type { MessageThread, Message, UserProfile } from '@/types'
 
+export type ThreadMessagingMeta = {
+  threadId: number
+  latestMessageId: number
+  latestSenderId: number | null
+}
+
 async function getAuthProfile() {
   const supabase = await createClient()
   const current = await profile.getCurrent()
@@ -180,5 +186,55 @@ export const threads = {
     return (data ?? [])
       .map((row) => (row as Record<string, unknown>)['Message Thread'] as MessageThread)
       .filter((t) => !t.Archived)
+  },
+
+  async getMessagingMeta(): Promise<ThreadMessagingMeta[]> {
+    const threadList = await this.getAll()
+    const auth = await getAuthProfile()
+    if (!auth?.profileId) {
+      throw new Error("Not logged in")
+    }
+    const { supabase } = auth
+    return Promise.all(
+      threadList.map(async (t) => {
+        const { data, error } = await supabase
+          .from('Message')
+          .select('MessageId, Sender')
+          .eq('message_thread', t.id)
+          .order('MessageId', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+        if (error) throw error
+        if (!data) {
+          return { threadId: t.id, latestMessageId: 0, latestSenderId: null }
+        }
+        const row = data as Pick<Message, 'MessageId' | 'Sender'>
+        return {
+          threadId: t.id,
+          latestMessageId: row.MessageId,
+          latestSenderId: row.Sender,
+        }
+      }),
+    )
+  },
+
+  async getUnreadCounts(lastReadByThread: Record<number, number>): Promise<Record<number, number>> {
+    const { supabase, profileId } = await getAuthProfile()
+    const threadList = await this.getAll()
+    const counts: Record<number, number> = {}
+    await Promise.all(
+      threadList.map(async (t) => {
+        const lastRead = lastReadByThread[t.id] ?? 0
+        const { count, error } = await supabase
+          .from('Message')
+          .select('*', { count: 'exact', head: true })
+          .eq('message_thread', t.id)
+          .gt('MessageId', lastRead)
+          .neq('Sender', profileId)
+        if (error) throw error
+        counts[t.id] = count ?? 0
+      }),
+    )
+    return counts
   },
 }

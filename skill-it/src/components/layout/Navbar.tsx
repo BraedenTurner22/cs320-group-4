@@ -2,7 +2,9 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import Button from '@/components/ui/Button'
+import { useMessagingUnread } from '@/components/providers/MessagingUnreadProvider'
+import NavbarProfileMenu from '@/components/layout/NavbarProfileMenu'
+import UnreadBadge from '@/components/threads/UnreadBadge'
 
 type NavbarProps = {
   isLoggedIn: boolean
@@ -10,6 +12,7 @@ type NavbarProps = {
 
 export default function Navbar({ isLoggedIn }: NavbarProps) {
   const router = useRouter()
+  const unread = useMessagingUnread()
 
   async function handleLogout() {
     await fetch('/api/auth/logout', { method: 'POST' })
@@ -33,22 +36,26 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
           >
             Jobs
           </Link>
-          <Link
-            href="/messages"
-            className="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:text-fg hover:bg-raised transition-all duration-150"
-          >
-            Messages
-          </Link>
+          <span className="relative inline-flex items-center">
+            <Link
+              href="/messages"
+              className="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:text-fg hover:bg-raised transition-all duration-150"
+            >
+              Messages
+            </Link>
+            <UnreadBadge
+              count={unread.totalUnread}
+              className="absolute -right-0.5 -top-0.5 scale-90"
+            />
+          </span>
           <Link
             href="/dashboard"
             className="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:text-fg hover:bg-raised transition-all duration-150"
           >
             Dashboard
           </Link>
-          <div className="ml-2 pl-2 border-l border-edge">
-            <Button variant="ghost" onClick={handleLogout}>
-              Log Out
-            </Button>
+          <div className="ml-2 flex items-center gap-2 pl-2 border-l border-edge">
+            <NavbarProfileMenu onLogout={handleLogout} />
           </div>
         </div>
       )}

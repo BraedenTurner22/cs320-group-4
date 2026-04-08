@@ -18,6 +18,8 @@ export type UserProfile = {
   Major?: string
   Graduation_Year?: number
   Is_Undergrad?: boolean
+  /** Storage object path `{auth_uid}/avatar.ext` in DB; API may rewrite to a signed URL for clients */
+  profile_picture?: string | null
 }
 
 export type Skill = {
