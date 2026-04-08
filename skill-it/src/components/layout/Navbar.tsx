@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useMessagingUnread } from '@/components/providers/MessagingUnreadProvider'
 import NavbarProfileMenu from '@/components/layout/NavbarProfileMenu'
 import UnreadBadge from '@/components/threads/UnreadBadge'
+import Button from '@/components/ui/Button'
 
 type NavbarProps = {
   isLoggedIn: boolean
