@@ -26,9 +26,10 @@ export default function MessageInput({ onSend }: MessageInputProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-3 items-end">
+    <form onSubmit={handleSubmit} className="flex items-center gap-3">
       <textarea
-        className="flex-1 rounded-xl border border-edge bg-high px-4 py-2.5 text-sm text-fg placeholder:text-muted/50 outline-none focus:ring-2 focus:ring-ember/50 focus:border-ember/60 resize-none min-h-[44px] max-h-[120px] transition-all duration-200"
+        rows={1}
+        className="box-border h-10 min-h-10 max-h-10 flex-1 resize-none overflow-y-auto rounded-xl border border-edge bg-high px-4 py-2 text-sm leading-5 text-fg placeholder:text-muted/50 outline-none transition-all duration-200 focus:border-ember/60 focus:ring-2 focus:ring-ember/50"
         placeholder="Type a message..."
         value={content}
         onChange={(e) => setContent(e.target.value)}
@@ -39,7 +40,11 @@ export default function MessageInput({ onSend }: MessageInputProps) {
           }
         }}
       />
-      <Button type="submit" disabled={sending || !content.trim()} className="shrink-0">
+      <Button
+        type="submit"
+        disabled={sending || !content.trim()}
+        className="inline-flex h-10 shrink-0 items-center justify-center px-5 py-0"
+      >
         Send
       </Button>
     </form>

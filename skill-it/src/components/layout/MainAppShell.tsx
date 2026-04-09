@@ -14,7 +14,7 @@ export default function MainAppShell({ children, shellStyle }: MainAppShellProps
     <div className="min-h-screen" style={shellStyle}>
       <MessagingUnreadProvider>
         <Navbar isLoggedIn={true} />
-        <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
+        <main className="mx-auto max-w-6xl px-4 pt-8 pb-[calc(2rem-2pt)]">{children}</main>
       </MessagingUnreadProvider>
     </div>
   )
