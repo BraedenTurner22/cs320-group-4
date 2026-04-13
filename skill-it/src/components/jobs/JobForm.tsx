@@ -101,7 +101,12 @@ export default function JobForm({ categories, skills: initialSkills, defCategory
         throw new Error(err.error || 'Failed to create skill')
       }
       const newSkill: Skill = await res.json()
-      setSkills((prev) => [...prev, newSkill])
+      setSkills((prev) => {
+        const alreadyPresent = prev.some(
+          (s) => s.id === newSkill.id || s.name.toLowerCase() === newSkill.name.toLowerCase()
+        )
+        return alreadyPresent ? prev : [...prev, newSkill]
+      })
       setSelectedNames((prev) => new Set(prev).add(newSkill.name))
       setCustomSkillName('')
       customSkillInputRef.current?.focus()
