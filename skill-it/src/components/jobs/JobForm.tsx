@@ -8,21 +8,29 @@ import type { Category, Skill } from '@/types'
 type JobFormProps = {
   categories: Category[]
   skills: Skill[]
+  defCategory: number
+  setDefCategory: (category:number)=>void
   onSubmit: (data: {
     title: string
     description: string
     categoryId: number
     skills: number[]
   }) => Promise<void>
+  onCreateCategory: () => void
 }
 
 const fieldClass =
   'rounded-xl border border-edge bg-high px-4 py-2.5 text-sm text-fg placeholder:text-muted/50 outline-none focus:ring-2 focus:ring-ember/50 focus:border-ember/60 transition-all duration-200'
 
-export default function JobForm({ categories, skills: initialSkills, onSubmit }: JobFormProps) {
+export default function JobForm({ categories, skills: initialSkills, defCategory, setDefCategory, onSubmit, onCreateCategory }: JobFormProps) {
+  // title hook
   const [title, setTitle] = useState('')
+  // description hook
   const [description, setDescription] = useState('')
-  const [categoryId, setCategoryId] = useState<number>(0)
+  // category hook
+  // Start with the default category if one is provided by the parent.
+  const [categoryId, setCategoryId] = useState<number>(defCategory || 0)
+  // skills hook
   const [skills, setSkills] = useState<Skill[]>(initialSkills)
 
   // Sync when parent finishes fetching skills (initialSkills arrives after async load).
@@ -36,7 +44,9 @@ export default function JobForm({ categories, skills: initialSkills, onSubmit }:
     })
   }, [initialSkills])
   const [selectedNames, setSelectedNames] = useState<Set<string>>(new Set())
+  // error hook
   const [error, setError] = useState('')
+  // loading result hook
   const [loading, setLoading] = useState(false)
 
   // Custom skill state
@@ -45,6 +55,15 @@ export default function JobForm({ categories, skills: initialSkills, onSubmit }:
   const [customSkillError, setCustomSkillError] = useState('')
   const customSkillInputRef = useRef<HTMLInputElement>(null)
 
+  // Sync the internal category state when the parent passes a new default category,
+  // such as immediately after creating a new category.
+  useEffect(() => {
+    if (defCategory > 0) {
+      setCategoryId(defCategory)
+    }
+  }, [defCategory])
+
+  // when toggle skill, add the skill or remove the skill depending if skill is in hook
   function toggleSkill(name: string) {
     setSelectedNames((prev) => {
       const next = new Set(prev)
@@ -143,12 +162,23 @@ export default function JobForm({ categories, skills: initialSkills, onSubmit }:
         <select
           className={fieldClass}
           value={categoryId}
-          onChange={(e) => setCategoryId(Number(e.target.value))}
+          onChange={(e) => {
+            const value = Number(e.target.value)
+            if (value === -1) {
+              onCreateCategory()
+              
+              setCategoryId(0)
+              return
+            }
+            setCategoryId(value)
+          }}
         >
           <option value={0}>Select a category</option>
           {categories.map((c) => (
             <option key={c.id} value={c.id}>{c.name}</option>
           ))}
+          <option value={-1}>Create category</option>
+
         </select>
       </div>
 
