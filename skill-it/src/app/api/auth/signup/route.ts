@@ -4,6 +4,14 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function POST(req: NextRequest) {
   try {
     const { email, password, name } = await req.json()
+
+    if (!email?.endsWith('@umass.edu')) {
+      return NextResponse.json(
+        { error: 'Only @umass.edu email addresses are allowed to sign up.' },
+        { status: 400 }
+      )
+    }
+
     const user = await account.signUp(email, password, name ?? email.split('@')[0])
     return NextResponse.json(user, { status: 201 })
   } catch (err: unknown) {
