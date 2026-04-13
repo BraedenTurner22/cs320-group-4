@@ -14,7 +14,18 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const { name, explicit } = await req.json()
-    const created = await skill.create(name, explicit ?? false)
+    if (!name || typeof name !== 'string' || !name.trim()) {
+      return NextResponse.json({ error: 'Skill name is required' }, { status: 400 })
+    }
+    const trimmed = name.trim()
+
+    // Return the existing skill if one already exists with the same name (case-insensitive)
+    const existing = await skill.findByName(trimmed)
+    if (existing) {
+      return NextResponse.json(existing, { status: 200 })
+    }
+
+    const created = await skill.create(trimmed, explicit ?? false)
     return NextResponse.json(created, { status: 201 })
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Failed to create skill'
