@@ -13,6 +13,17 @@ export const skill = {
     return data as Skill
   },
 
+  async findByName(name: string): Promise<Skill | null> {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from('Skill')
+      .select('*')
+      .ilike('name', name)
+      .maybeSingle()
+    if (error) throw error
+    return data as Skill | null
+  },
+
   async getAll(): Promise<Skill[]> {
     const supabase = await createClient()
     const { data, error } = await supabase
