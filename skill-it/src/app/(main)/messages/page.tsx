@@ -2,9 +2,8 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useMessagingUnread } from '@/components/providers/MessagingUnreadProvider'
-import type { Job, MessageThread, UserProfile } from '@/types'
+import type { Job, MessageThread } from '@/types'
 import MessagesJobGroups from '@/components/threads/MessagesJobGroups'
-import ParticipantChips from '@/components/threads/ParticipantChips'
 
 export default function MessagesPage() {
   const { unreadByThread } = useMessagingUnread()
@@ -15,11 +14,9 @@ export default function MessagesPage() {
   >({})
   const [jobTitlesLoading, setJobTitlesLoading] = useState(false)
   const [loadingThreads, setLoadingThreads] = useState(true)
-  const [headerPeople, setHeaderPeople] = useState<UserProfile[]>([])
 
   const loadThreads = useCallback(async () => {
     setLoadingThreads(true)
-    setHeaderPeople([])
     setJobTitlesLoading(false)
     let threads: MessageThread[] = []
     try {
@@ -64,44 +61,6 @@ export default function MessagesPage() {
       )
       setJobTitleByJobId(titles)
       setJobParticipantsByJobId(participants)
-
-      let currentUserId = 0
-      try {
-        const meRes = await fetch('/api/profile')
-        if (meRes.ok) {
-          const me = (await meRes.json()) as UserProfile
-          currentUserId = me.id
-        }
-      } catch {
-        /* ignore */
-      }
-
-      const unionIds = [...new Set(Object.values(participants).flat())]
-      if (unionIds.length > 0) {
-        try {
-          const profRes = await fetch('/api/profiles/by-ids', {
-            method: 'POST',
-            credentials: 'same-origin',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ids: unionIds }),
-          })
-          if (profRes.ok) {
-            const list = (await profRes.json()) as UserProfile[]
-            setHeaderPeople(
-              list
-                .filter(Boolean)
-                .filter((u) => currentUserId <= 0 || u.id !== currentUserId)
-                .sort((a, b) =>
-                  (a.Username ?? '').localeCompare(b.Username ?? '', undefined, {
-                    sensitivity: 'base',
-                  }),
-                ),
-            )
-          }
-        } catch {
-          /* ignore */
-        }
-      }
     } finally {
       setJobTitlesLoading(false)
     }
@@ -113,16 +72,9 @@ export default function MessagesPage() {
 
   return (
     <div className="flex w-full min-w-0 flex-col gap-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
-        <div className="min-w-0 flex-1">
-          <h1 className="text-3xl font-extrabold text-fg tracking-tight">Messages</h1>
-          <p className="text-muted text-sm mt-1">Your active conversations</p>
-        </div>
-        <ParticipantChips
-          participants={headerPeople}
-          listClassName="shrink-0 sm:justify-end sm:pt-1"
-          ariaLabel="People on jobs you have conversations for"
-        />
+      <div>
+        <h1 className="text-3xl font-extrabold text-fg tracking-tight">Messages</h1>
+        <p className="text-muted text-sm mt-1">Your active conversations</p>
       </div>
       {loadingThreads ? (
         <p className="text-sm text-muted/60">Loading threads...</p>
