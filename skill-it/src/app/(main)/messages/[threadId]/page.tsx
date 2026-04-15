@@ -287,37 +287,37 @@ export default function ThreadDetailPage() {
               </div>
             ) : (
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-                <div className="flex min-w-0 flex-1 flex-row flex-wrap items-start gap-x-2 gap-y-1">
-                  <div className="min-w-0 w-fit max-w-[calc(100%-3.25rem)]">
-                    <h1 className="break-words text-xl font-bold text-fg">
+                <div className="min-w-0 flex-1 flex flex-col gap-0.5">
+                  <h1 className="min-w-0 text-xl font-bold leading-snug text-fg">
+                    <span className="break-words">
                       {thread?.['Thread name'] ?? 'Loading...'}
-                    </h1>
-                    {thread && jobSubtitle && (
-                      <p className="mt-0.5 text-muted text-[calc(0.75rem+2pt)]">
-                        {jobSubtitle}
-                      </p>
-                    )}
-                  </div>
-                  {thread && (
-                    <button
-                      type="button"
-                      onClick={beginRename}
-                      className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-xl border border-edge bg-raised text-muted transition-colors hover:border-ember/40 hover:bg-high hover:text-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ember/50 focus-visible:ring-offset-2 focus-visible:ring-offset-surface sm:size-11"
-                      aria-label="Edit thread name"
-                    >
-                      <svg
-                        className="size-5 sm:size-6"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden
+                    </span>
+                    {thread && (
+                      <button
+                        type="button"
+                        onClick={beginRename}
+                        className="ml-1.5 inline-flex size-7 shrink-0 align-middle items-center justify-center rounded-lg border border-edge bg-raised text-muted transition-colors hover:border-ember/40 hover:bg-high hover:text-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ember/50 focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+                        aria-label="Edit thread name"
                       >
-                        <path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z" />
-                      </svg>
-                    </button>
+                        <svg
+                          className="size-3.5"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden
+                        >
+                          <path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z" />
+                        </svg>
+                      </button>
+                    )}
+                  </h1>
+                  {thread && jobSubtitle && (
+                    <p className="text-muted text-[calc(0.75rem+2pt)]">
+                      {jobSubtitle}
+                    </p>
                   )}
                 </div>
                 <ParticipantChips
@@ -357,8 +357,8 @@ export default function ThreadDetailPage() {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input — pt-4 above bar; mb pulls bar up to trim gap below */}
-      <div className="shrink-0 border-t border-edge pt-4 pb-0 mb-[calc(-0.5rem-1pt)]">
+      {/* Input — extra pb so the bar sits comfortably above the viewport bottom */}
+      <div className="shrink-0 border-t border-edge pt-4 pb-0 mb-[calc(-0.5rem+6pt)]">
         <MessageInput onSend={handleSend} />
       </div>
     </div>
