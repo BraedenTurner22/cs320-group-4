@@ -4,7 +4,6 @@ import { useState, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
-import ShaderGradientBg from '@/components/ui/ShaderGradientBg'
 import Link from 'next/link'
 
 export default function SignupPage() {
@@ -38,11 +37,8 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden">
-      <ShaderGradientBg />
-      <div className="absolute inset-0 bg-surface/40" />
-
-      <div className="relative z-10 w-full max-w-md rounded-2xl border border-edge/60 bg-raised/80 backdrop-blur-xl p-8 shadow-2xl shadow-surface">
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="w-full max-w-md rounded-2xl border border-edge/60 bg-raised/80 backdrop-blur-xl p-8 shadow-2xl shadow-surface">
         <div className="mb-6">
           <h1 className="text-3xl font-extrabold tracking-tight mb-1">
             <span className="text-ember">Skill</span>

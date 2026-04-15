@@ -69,6 +69,17 @@ export const profile = {
     return data as UserProfile
   },
 
+  async getByIDs(ids: number[]): Promise<UserProfile[]> {
+    if (ids.length === 0) return []
+    const supabase = createAdminClient()
+    const { data, error } = await supabase
+      .from('Profile')
+      .select('*')
+      .in('id', ids)
+    if (error) throw error
+    return (data ?? []) as UserProfile[]
+  },
+
   async getByAuthUID(authUid: string): Promise<UserProfile> {
     const supabase = await createClient()
     const { data, error } = await supabase

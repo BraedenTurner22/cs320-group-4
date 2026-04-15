@@ -11,9 +11,11 @@ type Props = {
   initialJobs: Job[]
   categories: string[]
   skills: string[]
+  posterNames?: Record<string, string>
+  posterAvatars?: Record<string, string | null>
 }
 
-export default function JobsClient({ initialJobs, categories, skills }: Props) {
+export default function JobsClient({ initialJobs, categories, skills, posterNames = {}, posterAvatars = {} }: Props) {
   const [filters, setFilters] = useState<Filters>({})
 
   const filtered = initialJobs.filter((job) => {
@@ -52,7 +54,7 @@ export default function JobsClient({ initialJobs, categories, skills }: Props) {
       {filtered.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
           {filtered.map((job) => (
-            <JobCard key={job.id} job={job} />
+            <JobCard key={job.id} job={job} posterName={posterNames[String(job.posted_by)]} posterAvatar={posterAvatars[String(job.posted_by)]} />
           ))}
         </div>
       ) : (
