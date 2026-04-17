@@ -8,7 +8,10 @@ jest.mock('@/lib/supabase/server', () => ({
 
 const mockCreateClient = jest.mocked(createClient)
 
+// gitguardian:ignore
 const testEmail = 'test@test.com'
+
+// gitguardian:ignore
 const testPassword = '123test'
 
 function mockServerClient(overrides: {
