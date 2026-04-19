@@ -71,6 +71,53 @@ export default function NavbarProfileMenu({ onLogout }: NavbarProfileMenuProps) 
     await onLogout()
   }
 
+  // return (
+  //   <div ref={rootRef} className="relative ml-1 shrink-0">
+  //     <button
+  //       type="button"
+  //       onClick={() => setOpen((v) => !v)}
+  //       aria-expanded={open}
+  //       aria-haspopup="menu"
+  //       aria-label="Account menu"
+  //       className="flex shrink-0 items-center rounded-full ring-2 ring-transparent transition-all hover:ring-ember/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-ember/50 focus-visible:ring-offset-2 focus-visible:ring-offset-high"
+  //     >
+  //       <ProfileAvatar name={name} imageUrl={prof?.profile_picture} size="md" />
+  //     </button>
+
+  //     {open && (
+  //       <div
+  //         role="menu"
+  //         aria-orientation="vertical"
+  //         className="absolute right-0 top-full z-[60] mt-5 min-w-[12rem] overflow-hidden rounded-xl border border-edge bg-high/95 py-1 shadow-lg shadow-black/20 backdrop-blur-md"
+  //       >
+  //         <Link
+  //           href="/profile/picture"
+  //           role="menuitem"
+  //           onClick={close}
+  //           className="block px-4 py-2.5 text-left text-sm font-medium text-fg hover:bg-raised transition-colors"
+  //         >
+  //           Edit Profile
+  //         </Link>
+  //         <Link
+  //           href="/profile/settings"
+  //           role="menuitem"
+  //           onClick={close}
+  //           className="block px-4 py-2.5 text-left text-sm font-medium text-fg hover:bg-raised transition-colors"
+  //         >
+  //           User Settings (TODO)
+  //         </Link>
+  //         <button
+  //           type="button"
+  //           role="menuitem"
+  //           onClick={() => void handleLogout()}
+  //           className="flex w-full justify-start px-4 py-2.5 text-left text-sm font-medium text-fg hover:bg-raised transition-colors"
+  //         >
+  //           Log out
+  //         </button>
+  //       </div>
+  //     )}
+  //   </div>
+  // )
   return (
     <div ref={rootRef} className="relative ml-1 shrink-0">
       <button
@@ -91,12 +138,20 @@ export default function NavbarProfileMenu({ onLogout }: NavbarProfileMenuProps) 
           className="absolute right-0 top-full z-[60] mt-5 min-w-[12rem] overflow-hidden rounded-xl border border-edge bg-high/95 py-1 shadow-lg shadow-black/20 backdrop-blur-md"
         >
           <Link
-            href="/profile/picture"
+            href="/profile/edit"
             role="menuitem"
             onClick={close}
             className="block px-4 py-2.5 text-left text-sm font-medium text-fg hover:bg-raised transition-colors"
           >
             Edit Profile
+          </Link>
+          <Link
+            href="/profile/picture"
+            role="menuitem"
+            onClick={close}
+            className="block px-4 py-2.5 text-left text-sm font-medium text-fg hover:bg-raised transition-colors"
+          >
+            Change Picture
           </Link>
           <Link
             href="/profile/settings"

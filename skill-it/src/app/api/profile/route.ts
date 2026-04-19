@@ -33,6 +33,7 @@ export async function PUT(req: NextRequest) {
     const updated = await profile.update(current.id, body)
     return NextResponse.json(updated)
   } catch (err: unknown) {
+    console.error("SUPABASE ERROR DETAILS:", err)
     const message = err instanceof Error ? err.message : 'Failed to update profile'
     return NextResponse.json({ error: message }, { status: 400 })
   }
