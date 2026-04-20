@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { useMessagingUnread } from '@/components/providers/MessagingUnreadProvider'
 import NavbarProfileMenu from '@/components/layout/NavbarProfileMenu'
@@ -39,6 +40,7 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
   return (
     <nav className="sticky top-0 z-50 flex items-center justify-between border-b border-edge bg-high/80 backdrop-blur-md px-6 py-3">
       <Link href="/dashboard" className="flex items-center gap-2">
+        <Image src="/skillit_logo.png" alt="Skill-It logo" width={48} height={48} className="rounded-sm w-[48px] h-[48px]" />
         <span className="text-2xl font-extrabold text-ember tracking-tight">
           Skill<span className="text-fg">-It</span>
         </span>

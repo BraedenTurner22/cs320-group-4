@@ -46,6 +46,7 @@ export type Job = {
   // Joined relations (not direct columns)
   associated_skills?: Skill[]
   category?: Category
+  poster_username?: string | null
 }
 
 export type Message = {
