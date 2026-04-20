@@ -4,7 +4,7 @@ import { useEffect, useState, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
-import type { UserProfile } from '@/types'
+import type { Skill, UserProfile } from '@/types'
 
 export default function EditProfilePage() {
   const router = useRouter()
@@ -14,6 +14,12 @@ export default function EditProfilePage() {
   const [major, setMajor] = useState('')
   const [graduationYear, setGraduationYear] = useState('')
   const [bio, setBio] = useState('')
+
+  // --- Skills State ---
+  const [allSkills, setAllSkills] = useState<Skill[]>([])
+  const [userSkills, setUserSkills] = useState<Skill[]>([])
+  const [selectedSkillId, setSelectedSkillId] = useState('')
+  const [addingSkill, setAddingSkill] = useState(false)
   
   // UI State
   const [loading, setLoading] = useState(true)
@@ -24,26 +30,75 @@ export default function EditProfilePage() {
   // Load existing profile data on mount
   useEffect(() => {
     let cancelled = false
-    async function loadProfile() {
+    async function loadData() {
       try {
-        const res = await fetch('/api/profile')
-        if (res.ok && !cancelled) {
-          const data: UserProfile = await res.json()
-          setUsername(data.Username || '')
-          setMajor(data.Major || '') 
-          setGraduationYear(data.Graduation_Year ? String(data.Graduation_Year) : '')
-          setBio(data.Description || '') 
+        // Fetch everything at once to save time
+        const [profileRes, allSkillsRes, userSkillsRes] = await Promise.all([
+          fetch('/api/profile'),
+          fetch('/api/skill'),
+          fetch('/api/profile/skills')
+        ])
+
+        if (!cancelled) {
+          if (profileRes.ok) {
+            const data: UserProfile = await profileRes.json()
+            setUsername(data.Username || '')
+            setMajor(data.Major || '') 
+            setGraduationYear(data.Graduation_Year ? String(data.Graduation_Year) : '')
+            setBio(data.Description || '') 
+          }
+          if (allSkillsRes.ok) setAllSkills(await allSkillsRes.json())
+          if (userSkillsRes.ok) setUserSkills(await userSkillsRes.json())
         }
-      } catch (err) {
+      } catch {
         if (!cancelled) setError('Failed to load profile data.')
       } finally {
         if (!cancelled) setLoading(false)
       }
     }
-    loadProfile()
+    loadData()
 
     return () => { cancelled = true }
   }, [])
+
+  async function handleAddSkill() {
+    if (!selectedSkillId) return
+    setAddingSkill(true)
+    try {
+      const res = await fetch('/api/profile/skills', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ skillId: selectedSkillId })
+      })
+      
+      if (res.ok) {
+        const addedSkill = allSkills.find(s => s.id === Number(selectedSkillId))
+        if (addedSkill) {
+          setUserSkills([...userSkills, addedSkill])
+        }
+        setSelectedSkillId('') // Reset dropdown
+      }
+    } finally {
+      setAddingSkill(false)
+    }
+  }
+
+  async function handleRemoveSkill(skillId: number) {
+    try {
+      // Instantly remove from UI so it feels snappy
+      setUserSkills(userSkills.filter(s => s.id !== skillId))
+      
+      // Tell the database to delete it
+      await fetch(`/api/profile/skills?skillId=${skillId}`, { method: 'DELETE' })
+    } catch (e) {
+      console.error('Failed to remove skill')
+    }
+  }
+
+  // Filter the dropdown so it only shows skills the user DOESN'T have yet
+  const availableSkillsToAdd = allSkills.filter(
+    skill => !userSkills.some(userSkill => userSkill.id === skill.id)
+  )
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -96,7 +151,7 @@ export default function EditProfilePage() {
     <div className="mx-auto max-w-lg flex flex-col gap-8 pb-12">
       <div>
         <Link
-          href="/profile"
+          href="/dashboard"
           className="text-sm font-medium text-muted hover:text-ember transition-colors"
         >
           ← Back
@@ -159,6 +214,43 @@ export default function EditProfilePage() {
           />
         </div>
 
+        {/* --- Skills Section (Saves Instantly) --- */}
+        <div className="flex flex-col gap-4 pt-6 border-t border-edge">
+          <label className="text-sm font-medium text-muted">Your Skills</label>
+          
+          {/* Active Skills Badges */}
+          <div className="flex flex-wrap gap-2">
+            {userSkills.map((skill) => (
+              <span key={skill.id} className="inline-flex items-center gap-1 rounded-full border border-edge bg-raised px-3 py-1.5 text-xs font-medium text-fg shadow-sm">
+                {skill.name}
+                <button type="button" onClick={() => handleRemoveSkill(skill.id)} className="ml-1 text-muted hover:text-danger focus:outline-none">
+                  &times;
+                </button>
+              </span>
+            ))}
+            {userSkills.length === 0 && <span className="text-sm text-muted/60 italic">No skills added yet.</span>}
+          </div>
+
+          {/* Add Skill Dropdown */}
+          <div className="flex gap-3">
+            <select
+              value={selectedSkillId}
+              onChange={(e) => setSelectedSkillId(e.target.value)}
+              className="flex-1 text-sm text-fg rounded-lg border border-edge bg-raised px-3 py-2 outline-none focus:ring-2 focus:ring-ember/50"
+            >
+              <option value="">Select a skill to add...</option>
+              {availableSkillsToAdd.map(s => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+            
+            {/* We use type="button" so it doesn't trigger the main form save! */}
+            <Button type="button" onClick={() => { void handleAddSkill() }} disabled={!selectedSkillId || addingSkill}>
+              {addingSkill ? 'Adding...' : 'Add'}
+            </Button>
+          </div>
+        </div>
+
         {/* Status Messages */}
         {error && <p className="text-sm text-danger font-medium">{error}</p>}
         {success && <p className="text-sm text-success font-medium">Profile updated successfully!</p>}
@@ -174,7 +266,7 @@ export default function EditProfilePage() {
       {/* Helpful Link to Picture Edit */}
       <div className="text-center">
         <Link 
-          href="/main/profile/picture" 
+          href="/profile/picture" 
           className="text-sm text-muted hover:text-ember transition-colors font-medium"
         >
           Want to update your profile picture instead?
