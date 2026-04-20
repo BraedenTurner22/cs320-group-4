@@ -1,6 +1,52 @@
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
 import { profile } from '@/lib/services/profile'
 import type { MessageThread, Message, UserProfile } from '@/types'
+
+async function canAccessThreadParticipants(
+  supabase: SupabaseClient,
+  threadId: number,
+  profileId: number,
+): Promise<boolean> {
+  const { data: memRows, error: memErr } = await supabase
+    .from('Thread users')
+    .select('thread_id')
+    .eq('thread_id', threadId)
+    .eq('user_id', profileId)
+    .limit(1)
+  if (memErr) throw memErr
+  if (memRows?.length) return true
+
+  const { data: msgRows, error: msgErr } = await supabase
+    .from('Message')
+    .select('MessageId')
+    .eq('message_thread', threadId)
+    .limit(1)
+  if (msgErr) throw msgErr
+  if (msgRows?.length) return true
+
+  const { data: threadRows, error: threadErr } = await supabase
+    .from('Message Thread')
+    .select('job')
+    .eq('id', threadId)
+    .limit(1)
+  if (threadErr) throw threadErr
+  const jobId = threadRows?.[0]?.job
+  if (jobId == null) return false
+
+  const { data: jobRows, error: jobErr } = await supabase
+    .from('Job')
+    .select('posted_by, accepted_workers')
+    .eq('id', jobId)
+    .limit(1)
+  if (jobErr) throw jobErr
+  const job = jobRows?.[0]
+  if (!job) return false
+
+  if (Number(job.posted_by) === profileId) return true
+  const workers = Array.isArray(job.accepted_workers) ? job.accepted_workers : []
+  return workers.some((w) => Number(w) === profileId)
+}
 
 export type ThreadMessagingMeta = {
   threadId: number
@@ -134,22 +180,56 @@ export const threads = {
   // Participants: member ids via session, full Profile via admin (RLS often hides others' profile_picture).
   async getUsers(threadId: number): Promise<UserProfile[]> {
     const { supabase, profileId } = await getAuthProfile()
-    const { data: membership, error: memErr } = await supabase
-      .from('Thread users')
-      .select('thread_id')
-      .eq('thread_id', threadId)
-      .eq('user_id', profileId)
-      .maybeSingle()
-    if (memErr) throw memErr
-    if (!membership) throw new Error('Not a member of this thread')
+    const allowed = await canAccessThreadParticipants(supabase, threadId, profileId)
+    if (!allowed) throw new Error('Not a member of this thread')
 
     const { data, error } = await supabase
       .from('Thread users')
       .select('user_id')
       .eq('thread_id', threadId)
     if (error) throw error
-    const ids = [...new Set((data ?? []).map((row) => row.user_id as number))]
-    return Promise.all(ids.map((id) => profile.getByID(id)))
+    let ids = [...new Set((data ?? []).map((row) => row.user_id as number))]
+
+    if (ids.length === 0) {
+      const { data: msgs } = await supabase
+        .from('Message')
+        .select('Sender')
+        .eq('message_thread', threadId)
+      ids = [...new Set((msgs ?? []).map((m) => (m as { Sender: number }).Sender))]
+    }
+    if (ids.length === 0) {
+      const { data: t } = await supabase
+        .from('Message Thread')
+        .select('job')
+        .eq('id', threadId)
+        .maybeSingle()
+      if (t?.job != null) {
+        const { data: job } = await supabase
+          .from('Job')
+          .select('posted_by, accepted_workers')
+          .eq('id', t.job)
+          .maybeSingle()
+        if (job) {
+          const set = new Set<number>()
+          set.add(job.posted_by as number)
+          for (const id of (job.accepted_workers as number[] | null) ?? []) {
+            set.add(id)
+          }
+          ids = [...set]
+        }
+      }
+    }
+
+    const profiles = await Promise.all(
+      ids.map(async (id) => {
+        try {
+          return await profile.getByID(id)
+        } catch {
+          return null
+        }
+      }),
+    )
+    return profiles.filter((p): p is UserProfile => p != null)
   },
 
   async addUser(threadId: number, userId: number): Promise<boolean> {

@@ -31,7 +31,9 @@ export default function MessagesPage() {
       setLoadingThreads(false)
     }
 
-    if (threads.length === 0) return
+    if (threads.length === 0) {
+      return
+    }
 
     setJobTitleByJobId({})
     setJobParticipantsByJobId({})
