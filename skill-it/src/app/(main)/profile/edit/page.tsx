@@ -9,30 +9,27 @@ import type { Skill, UserProfile } from '@/types'
 export default function EditProfilePage() {
   const router = useRouter()
   
-  // Form State
   const [username, setUsername] = useState('')
   const [major, setMajor] = useState('')
   const [graduationYear, setGraduationYear] = useState('')
   const [bio, setBio] = useState('')
 
-  // --- Skills State ---
+  //Skills
   const [allSkills, setAllSkills] = useState<Skill[]>([])
   const [userSkills, setUserSkills] = useState<Skill[]>([])
   const [selectedSkillId, setSelectedSkillId] = useState('')
   const [addingSkill, setAddingSkill] = useState(false)
   
-  // UI State
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
-  // Load existing profile data on mount
+  // Existing Profile
   useEffect(() => {
     let cancelled = false
     async function loadData() {
       try {
-        // Fetch everything at once to save time
         const [profileRes, allSkillsRes, userSkillsRes] = await Promise.all([
           fetch('/api/profile'),
           fetch('/api/skill'),
@@ -76,7 +73,7 @@ export default function EditProfilePage() {
         if (addedSkill) {
           setUserSkills([...userSkills, addedSkill])
         }
-        setSelectedSkillId('') // Reset dropdown
+        setSelectedSkillId('') 
       }
     } finally {
       setAddingSkill(false)
@@ -85,17 +82,15 @@ export default function EditProfilePage() {
 
   async function handleRemoveSkill(skillId: number) {
     try {
-      // Instantly remove from UI so it feels snappy
-      setUserSkills(userSkills.filter(s => s.id !== skillId))
       
-      // Tell the database to delete it
+      setUserSkills(userSkills.filter(s => s.id !== skillId))
       await fetch(`/api/profile/skills?skillId=${skillId}`, { method: 'DELETE' })
-    } catch (e) {
+    } catch {
       console.error('Failed to remove skill')
     }
   }
 
-  // Filter the dropdown so it only shows skills the user DOESN'T have yet
+  // Dropdown
   const availableSkillsToAdd = allSkills.filter(
     skill => !userSkills.some(userSkill => userSkill.id === skill.id)
   )
@@ -127,7 +122,7 @@ export default function EditProfilePage() {
 
       setSuccess(true)
       
-      // Redirect back after a short delay
+      // Timeout redirect
       setTimeout(() => {
         router.push('/dashboard') 
       }, 1500)
