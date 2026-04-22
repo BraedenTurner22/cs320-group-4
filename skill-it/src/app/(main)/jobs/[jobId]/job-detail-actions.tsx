@@ -3,8 +3,15 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/ui/Button'
+import ReviewCard from '@/components/reviews/ReviewCard'
 
 type PendingRequest = { Username: string; Email: string; id: number }
+
+type ReviewWithSubjectNames = {
+  rating: number
+  feedback: string
+  subjects: Array<{ id: number; name: string }>
+}
 
 type Props = {
   jobId: number
@@ -12,6 +19,7 @@ type Props = {
   isCompleted: boolean
   pendingRequests: PendingRequest[]
   hasApplied: boolean
+  review?: ReviewWithSubjectNames | null
 }
 
 export default function JobDetailActions({
@@ -20,6 +28,7 @@ export default function JobDetailActions({
   isCompleted,
   pendingRequests: initialRequests,
   hasApplied: initialHasApplied,
+  review,
 }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -106,8 +115,37 @@ export default function JobDetailActions({
     }
   }
 
-  if (isCompleted) return null
+  // If review exists and job is completed, show review cards
+  if (review && isCompleted) {
+    return (
+      <div className="flex flex-col gap-4">
+        <h3 className="font-semibold text-fg text-sm">Your Review</h3>
+        <div className="flex flex-col gap-3">
+          {review.subjects.map((subject) => (
+            <ReviewCard
+              key={subject.id}
+              rating={review.rating}
+              feedback={review.feedback}
+              subject={subject.name}
+            />
+          ))}
+        </div>
+      </div>
+    )
+  }
 
+  // If job is completed but no review, show leave review button
+  if (isCompleted && !review) {
+    return (
+      <div>
+        <Button onClick={() => router.push(`/reviews/new?jobId=${jobId}`)}>
+          Leave a Review
+        </Button>
+      </div>
+    )
+  }
+
+  // Default behavior for non-completed jobs
   return (
     <div className="flex flex-col gap-4">
       {notification && (

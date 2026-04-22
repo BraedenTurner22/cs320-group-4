@@ -1,11 +1,18 @@
 import { jobs } from '@/lib/services/jobs'
 import { profile } from '@/lib/services/profile'
+import { reviews } from '@/lib/services/reviews'
 import type { UserProfile } from '@/types'
 import Badge from '@/components/ui/Badge'
 import Card from '@/components/ui/Card'
 import JobDetailActions from './job-detail-actions'
 
 type Params = { params: Promise<{ jobId: string }> }
+
+type ReviewWithSubjectNames = {
+  rating: number
+  feedback: string
+  subjects: Array<{ id: number; name: string }>
+}
 
 export default async function JobDetailPage({ params }: Params) {
   const { jobId } = await params
@@ -34,6 +41,8 @@ export default async function JobDetailPage({ params }: Params) {
     isOwner ? jobs.getPendingRequests(Number(jobId)) : Promise.resolve([]),
   ])
 
+  // console.log(pendingReqsResult)
+
   const poster: UserProfile | null = posterResult.status === 'fulfilled' ? posterResult.value : null
   const acceptedWorkerProfiles =
     acceptedProfilesResult.status === 'fulfilled'
@@ -43,6 +52,26 @@ export default async function JobDetailPage({ params }: Params) {
     pendingReqsResult.status === 'fulfilled'
       ? pendingReqsResult.value.map((r) => ({ Username: r.Username, Email: r.Email, id: r.id }))
       : []
+
+  // Fetch review if job is completed and user is logged in
+  let reviewWithSubjectNames: ReviewWithSubjectNames | null = null
+  if (job.completed && currentProfileResult) {
+    const review = await reviews.getReviewByJobID(Number(jobId), currentProfileResult.id).catch(() => null)
+    // console.log(review)
+    if (review) {
+      const subjectProfiles = await Promise.all(
+        review.subject.map(subjectId => profile.getByID(subjectId).catch(() => null))
+      )
+
+      reviewWithSubjectNames = {
+        rating: review.rating,
+        feedback: review.feedback,
+        subjects: subjectProfiles
+          .filter((p) => p !== null)
+          .map((p) => ({ id: p.id, name: p.Username }))
+      }
+    }
+  }
 
   return (
     <div className="flex flex-col gap-6 max-w-3xl">
@@ -85,6 +114,7 @@ export default async function JobDetailPage({ params }: Params) {
         isCompleted={job.completed}
         pendingRequests={pendingRequests}
         hasApplied={hasApplied}
+        review={reviewWithSubjectNames}
       />
     </div>
   )
