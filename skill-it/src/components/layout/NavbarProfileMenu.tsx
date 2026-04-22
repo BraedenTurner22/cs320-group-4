@@ -71,6 +71,7 @@ export default function NavbarProfileMenu({ onLogout }: NavbarProfileMenuProps) 
     await onLogout()
   }
 
+  // Previous Navbar
   // return (
   //   <div ref={rootRef} className="relative ml-1 shrink-0">
   //     <button
