@@ -1,4 +1,4 @@
-@import "tailwindcss";
+/* @import "tailwindcss";
 
 @theme {
   --color-surface: #332F2D;
@@ -27,5 +27,51 @@ body {
 ::-webkit-scrollbar-thumb { background: var(--color-edge); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #881124; }
 
-select option { background-color: var(--color-raised); color: #F0EDE9; }
+select option { background-color: var(--color-raised); color: #F0EDE9; } */
 
+@import "tailwindcss";
+
+@theme {
+  /* Backgrounds */
+  --color-surface: #FFFFFF;     /* Pure White for the main background */
+  --color-raised: #F8FAFC;      /* Very light gray for cards and inputs */
+  --color-high: #F1F5F9;        /* Slightly darker gray for hovers */
+  
+  /* Borders */
+  --color-edge: #E2E8F0;        /* Clean, soft gray for borders */
+  
+  /* Text */
+  --color-fg: #0F172A;          /* Very dark slate (almost black) for main text */
+  --color-muted: #64748B;       /* Medium slate for subtitles and labels */
+  
+  /* Brand Accents */
+  --color-ember: #881124;       /* Your original brand red */
+  --color-ember-dark: #6A0D1C;  /* Darker red for button hovers */
+  --color-ember-dim: #FEE2E2;   /* Very light red/pink for faint background accents */
+  
+  /* Status Colors (Slightly darkened for better contrast on white) */
+  --color-success: #059669;
+  --color-danger: #DC2626;
+  
+  /* Fonts */
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background-color: var(--color-surface);
+  color: var(--color-fg); /* Changed from hardcoded white */
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Scrollbar styling updated for light mode */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--color-surface); }
+::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-ember); }
+
+/* Dropdown styling updated for light mode */
+select option { 
+  background-color: var(--color-surface); 
+  color: var(--color-fg); 
+}
