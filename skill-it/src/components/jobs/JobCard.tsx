@@ -47,16 +47,24 @@ export default function JobCard({
           </div>
 
           {/* Category */}
-          {job.category && <Badge color="orange">{job.category.name}</Badge>}
+          {job.category && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted/70 font-medium shrink-0">Category:</span>
+              <Badge color="orange">{job.category.name}</Badge>
+            </div>
+          )}
 
           {/* Skills */}
           {job.associated_skills && job.associated_skills.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {job.associated_skills.map((s, i) => (
-                <Badge key={s.id ?? `skill-${i}`} color="dim">
-                  {s.name}
-                </Badge>
-              ))}
+            <div className="flex items-start gap-2">
+              <span className="text-xs text-muted/70 font-medium shrink-0 pt-0.5">Skills:</span>
+              <div className="flex flex-wrap gap-1.5">
+                {job.associated_skills.map((s, i) => (
+                  <Badge key={s.id ?? `skill-${i}`} color="dim">
+                    {s.name}
+                  </Badge>
+                ))}
+              </div>
             </div>
           )}
 
