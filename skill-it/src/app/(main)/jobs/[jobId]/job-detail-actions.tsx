@@ -10,8 +10,10 @@ type PendingRequest = { Username: string; Email: string; id: number }
 type ReviewWithSubjectNames = {
   rating: number
   feedback: string
-  subjects: Array<{ id: number; name: string }>
+  subjects: { id: number; name: string }
 }
+
+type AcceptedWorker = { id: number; Username: string }
 
 type Props = {
   jobId: number
@@ -19,7 +21,8 @@ type Props = {
   isCompleted: boolean
   pendingRequests: PendingRequest[]
   hasApplied: boolean
-  review?: ReviewWithSubjectNames | null
+  reviews: ReviewWithSubjectNames[]
+  acceptedWorkerProfiles: AcceptedWorker[]
 }
 
 export default function JobDetailActions({
@@ -28,7 +31,8 @@ export default function JobDetailActions({
   isCompleted,
   pendingRequests: initialRequests,
   hasApplied: initialHasApplied,
-  review,
+  reviews,
+  acceptedWorkerProfiles,
 }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -116,17 +120,18 @@ export default function JobDetailActions({
   }
 
   // If review exists and job is completed, show review cards
-  if (review && isCompleted) {
+  //console.log(acceptedWorkerProfiles)
+  if (reviews.length > 0 && isCompleted && (!isOwner || acceptedWorkerProfiles.length > 0)) {
     return (
       <div className="flex flex-col gap-4">
         <h3 className="font-semibold text-fg text-sm">Your Review</h3>
         <div className="flex flex-col gap-3">
-          {review.subjects.map((subject) => (
+          {reviews.map((review) => (
             <ReviewCard
-              key={subject.id}
+              key={review.subjects.id}
               rating={review.rating}
               feedback={review.feedback}
-              subject={subject.name}
+              subject={review.subjects.name}
             />
           ))}
         </div>
@@ -135,12 +140,23 @@ export default function JobDetailActions({
   }
 
   // If job is completed but no review, show leave review button
-  if (isCompleted && !review) {
+  // Only show if: not owner OR (owner with accepted workers)
+  if (isCompleted && reviews.length === 0 && (!isOwner || acceptedWorkerProfiles.length > 0)) {
     return (
       <div>
         <Button onClick={() => router.push(`/reviews/new?jobId=${jobId}`)}>
           Leave a Review
         </Button>
+      </div>
+    )
+  }
+
+  // If job is archived (completed with no accepted workers and user is owner)
+  if (isCompleted && acceptedWorkerProfiles.length === 0 && isOwner) {
+    return (
+      <div className="px-4 py-3 rounded-xl text-sm font-medium border bg-muted/10 text-muted border-muted/25">
+        <p className="font-semibold">Job Archived</p>
+        <p className="text-xs mt-1">This job was archived with no accepted workers.</p>
       </div>
     )
   }
@@ -238,9 +254,15 @@ export default function JobDetailActions({
           {/* Job management */}
           <div className="flex flex-col gap-3">
             <p className="text-xs font-semibold text-muted uppercase tracking-wider">Job Management</p>
-            <Button variant="secondary" onClick={handleComplete} disabled={loading} className="self-start">
-              {loading ? 'Marking...' : 'Mark as Complete'}
-            </Button>
+            {acceptedWorkerProfiles.length === 0 ? (
+              <Button variant="secondary" onClick={handleComplete} disabled={loading} className="self-start">
+                {loading ? 'Archiving...' : 'Archive'}
+              </Button>
+            ) : (
+              <Button variant="secondary" onClick={handleComplete} disabled={loading} className="self-start">
+                {loading ? 'Marking...' : 'Mark as Complete'}
+              </Button>
+            )}
           </div>
         </div>
       )}

@@ -12,8 +12,10 @@ type Params = { params: Promise<{ jobId: string }> }
 type ReviewWithSubjectNames = {
   rating: number
   feedback: string
-  subjects: Array<{ id: number; name: string }>
+  subjects: {id: number, name: string}
 }
+
+type ReviewList = ReviewWithSubjectNames[]
 
 export default async function JobDetailPage({ params }: Params) {
   const { jobId } = await params
@@ -52,23 +54,27 @@ export default async function JobDetailPage({ params }: Params) {
       ? pendingReqsResult.value.map((r) => ({ Username: r.Username, Email: r.Email, id: r.id }))
       : []
 
-  // Fetch review if job is completed and user is logged in
-  let reviewWithSubjectNames: ReviewWithSubjectNames | null = null
+  // Fetch reviews if job is completed and user is logged in
+  let reviewsWithSubjectNames: ReviewList = []
   if (job.completed && currentProfileResult) {
-    const review = await reviews.getReviewByJobID(Number(jobId), currentProfileResult.id).catch(() => null)
-    // console.log(review)
-    if (review) {
-      const subjectProfiles = await Promise.all(
-        review.subject.map(subjectId => profile.getByID(subjectId).catch(() => null))
-      )
+    const reviewsList = await reviews.getReviewByJobID(Number(jobId), currentProfileResult.id).catch(() => null)
+    
+    if (reviewsList && reviewsList.length > 0) {
+      reviewsWithSubjectNames = await Promise.all(
+        reviewsList.map(async (review) => {
+          const subjectProfiles = await profile.getByID(review.subject).catch(() => null)
+          
+          if (!subjectProfiles){
+            throw new Error("Subject Profile is null")
+          }
 
-      reviewWithSubjectNames = {
-        rating: review.rating,
-        feedback: review.feedback,
-        subjects: subjectProfiles
-          .filter((p) => p !== null)
-          .map((p) => ({ id: p.id, name: p.Username }))
-      }
+          return {
+            rating: review.rating,
+            feedback: review.feedback,
+            subjects: { id: subjectProfiles.id, name: subjectProfiles.Username }
+          }
+        })
+      )
     }
   }
 
@@ -141,7 +147,8 @@ export default async function JobDetailPage({ params }: Params) {
         isCompleted={job.completed}
         pendingRequests={pendingRequests}
         hasApplied={hasApplied}
-        review={reviewWithSubjectNames}
+        reviews={reviewsWithSubjectNames}
+        acceptedWorkerProfiles={acceptedWorkerProfiles}
       />
     </div>
   )

@@ -22,7 +22,7 @@ export async function GET(req: NextRequest, { params }: Params) {
     }
 
     const review = await reviews.getReviewByJobID(jobIdNum, profileIdNum)
-
+    console.log(review)
     if (!review) {
       return NextResponse.json({ error: 'Review not found' }, { status: 404 })
     }

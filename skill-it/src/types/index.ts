@@ -76,7 +76,7 @@ export type JobFilters = {
 export type Review = {
   id: number
   author: number
-  subject: number[]
+  subject: number
   rating: number
   feedback: string
   jobid: number
