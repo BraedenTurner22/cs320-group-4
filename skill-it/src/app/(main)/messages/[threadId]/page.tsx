@@ -1,11 +1,13 @@
 'use client'
 
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useMessagingUnread } from '@/components/providers/MessagingUnreadProvider'
 import type { Job, Message, MessageThread, UserProfile } from '@/types'
 import MessageBubble from '@/components/threads/MessageBubble'
 import MessageInput from '@/components/threads/MessageInput'
+import ParticipantChips from '@/components/threads/ParticipantChips'
+import type { ParticipantChip } from '@/components/threads/ParticipantChips'
 import { markThreadUpTo } from '@/lib/messaging-read-cookie'
 
 export default function ThreadDetailPage() {
@@ -19,6 +21,7 @@ export default function ThreadDetailPage() {
   const [currentProfileId, setCurrentProfileId] = useState<number>(0)
   const [userMap, setUserMap] = useState<Record<number, string>>({})
   const [avatarByUserId, setAvatarByUserId] = useState<Record<number, string | null>>({})
+  const [participants, setParticipants] = useState<UserProfile[]>([])
   const bottomRef = useRef<HTMLDivElement>(null)
   const lastMarkedMaxRef = useRef<number | null>(null)
   const renameInputRef = useRef<HTMLInputElement>(null)
@@ -42,6 +45,7 @@ export default function ThreadDetailPage() {
       setJobLoaded(false)
       setUserMap({})
       setAvatarByUserId({})
+      setParticipants([])
       setRenamingThread(false)
       setRenameError(null)
       // Current user
@@ -83,6 +87,13 @@ export default function ThreadDetailPage() {
         })
         setUserMap(map)
         setAvatarByUserId(avatars)
+        setParticipants(
+          [...users.filter(Boolean)].sort((a, b) =>
+            (a.Username ?? '').localeCompare(b.Username ?? '', undefined, {
+              sensitivity: 'base',
+            }),
+          ),
+        )
       }
 
       await fetchMessages()
@@ -169,6 +180,32 @@ export default function ThreadDetailPage() {
     thread &&
     (jobLoaded ? (jobTitle ?? `Job #${thread.job}`) : 'Loading...')
 
+  const displayParticipants = useMemo((): ParticipantChip[] => {
+    const sortByName = (a: ParticipantChip, b: ParticipantChip) =>
+      (a.Username ?? '').localeCompare(b.Username ?? '', undefined, {
+        sensitivity: 'base',
+      })
+
+    let list: ParticipantChip[]
+    if (participants.length > 0) {
+      list = [...participants].sort(sortByName)
+    } else {
+      list = Object.keys(userMap)
+        .map((id) => Number(id))
+        .filter((id) => Number.isFinite(id))
+        .map((id) => ({
+          id,
+          Username: userMap[id],
+          profile_picture: avatarByUserId[id] ?? null,
+        }))
+        .sort(sortByName)
+    }
+    if (currentProfileId > 0) {
+      return list.filter((p) => p.id !== currentProfileId)
+    }
+    return list
+  }, [participants, userMap, avatarByUserId, currentProfileId])
+
   async function handleSend(content: string) {
     const res = await fetch(`/api/threads/${threadId}/messages`, {
       method: 'POST',
@@ -180,31 +217,10 @@ export default function ThreadDetailPage() {
   }
 
   return (
-    <div className="flex h-[calc(100dvh-8rem)] flex-col">
+    <div className="flex h-[calc(100dvh-6rem-2pt)] min-h-0 flex-col">
       {/* Thread header */}
-      <div className="relative border-b border-edge pb-4 mb-4">
-        {thread && !renamingThread && (
-          <button
-            type="button"
-            onClick={beginRename}
-            className="absolute right-0 top-0.5 flex size-11 items-center justify-center rounded-xl border border-edge bg-raised text-muted transition-colors hover:border-ember/40 hover:bg-high hover:text-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ember/50 focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
-            aria-label="Edit thread name"
-          >
-            <svg
-              className="size-6"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden
-            >
-              <path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z" />
-            </svg>
-          </button>
-        )}
-        <div className={`flex items-start gap-3 ${thread && !renamingThread ? 'pr-12' : ''}`}>
+      <div className="border-b border-edge pb-2 mb-2">
+        <div className="flex items-start gap-3">
           <button
             type="button"
             onClick={() => router.back()}
@@ -226,54 +242,89 @@ export default function ThreadDetailPage() {
           </button>
           <div className="min-w-0 flex-1">
             {renamingThread ? (
-              <div className="flex flex-col gap-2">
-                <div className="flex flex-wrap items-center gap-2">
-                  <input
-                    ref={renameInputRef}
-                    type="text"
-                    value={renameDraft}
-                    onChange={(e) => setRenameDraft(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Escape') cancelRename()
-                      if (e.key === 'Enter') void saveRename()
-                    }}
-                    disabled={renameSaving}
-                    className="min-w-[12rem] flex-1 rounded-xl border border-edge bg-high px-3 py-2 text-xl font-bold text-fg placeholder:text-muted/50 focus:border-ember/50 focus:outline-none focus:ring-2 focus:ring-ember/30 disabled:opacity-50"
-                    aria-label="Thread name"
-                    maxLength={200}
-                  />
-                  <button
-                    type="button"
-                    onClick={cancelRename}
-                    disabled={renameSaving}
-                    className="rounded-xl border border-edge px-3 py-2 text-sm font-medium text-muted transition-colors hover:bg-raised hover:text-fg disabled:opacity-40"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void saveRename()}
-                    disabled={renameSaving}
-                    className="rounded-xl border border-ember/40 bg-ember px-3 py-2 text-sm font-semibold text-white shadow-md shadow-ember/20 transition-opacity hover:opacity-90 disabled:opacity-40"
-                  >
-                    {renameSaving ? 'Saving…' : 'Save'}
-                  </button>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                <div className="min-w-0 flex-1 flex flex-col gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <input
+                      ref={renameInputRef}
+                      type="text"
+                      value={renameDraft}
+                      onChange={(e) => setRenameDraft(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Escape') cancelRename()
+                        if (e.key === 'Enter') void saveRename()
+                      }}
+                      disabled={renameSaving}
+                      className="min-w-[4.8rem] w-[25%] max-w-full rounded-xl border border-edge bg-high px-3 py-2 text-xl font-bold text-fg placeholder:text-muted/50 focus:border-ember/50 focus:outline-none focus:ring-2 focus:ring-ember/30 disabled:opacity-50"
+                      aria-label="Thread name"
+                      maxLength={200}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => void saveRename()}
+                      disabled={renameSaving}
+                      className="rounded-xl border border-ember/40 bg-ember px-3 py-2 text-sm font-semibold text-white shadow-md shadow-ember/20 transition-opacity hover:opacity-90 disabled:opacity-40"
+                    >
+                      {renameSaving ? 'Saving…' : 'Save'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={cancelRename}
+                      disabled={renameSaving}
+                      className="rounded-xl border border-edge px-3 py-2 text-sm font-medium text-muted transition-colors hover:bg-raised hover:text-fg disabled:opacity-40"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                  {renameError && (
+                    <p className="text-xs text-danger">{renameError}</p>
+                  )}
                 </div>
-                {renameError && (
-                  <p className="text-xs text-danger">{renameError}</p>
-                )}
+                <ParticipantChips
+                  participants={displayParticipants}
+                  listClassName="shrink-0 sm:justify-end sm:pt-0.5"
+                />
               </div>
             ) : (
-              <h1 className="text-xl font-bold text-fg">
-                {thread?.['Thread name'] ?? 'Loading...'}
-              </h1>
-            )}
-            {thread && !renamingThread && jobSubtitle && (
-              <p
-                className="mt-0.5 text-muted text-[calc(0.75rem+2pt)]"
-              >
-                {jobSubtitle}
-              </p>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                <div className="min-w-0 flex-1 flex flex-col gap-0.5">
+                  <h1 className="min-w-0 text-xl font-bold leading-snug text-fg">
+                    <span className="break-words">
+                      {thread?.['Thread name'] ?? 'Loading...'}
+                    </span>
+                    {thread && (
+                      <button
+                        type="button"
+                        onClick={beginRename}
+                        className="ml-1.5 inline-flex size-7 shrink-0 align-middle items-center justify-center rounded-lg border border-edge bg-raised text-muted transition-colors hover:border-ember/40 hover:bg-high hover:text-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ember/50 focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+                        aria-label="Edit thread name"
+                      >
+                        <svg
+                          className="size-3.5"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden
+                        >
+                          <path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z" />
+                        </svg>
+                      </button>
+                    )}
+                  </h1>
+                  {thread && jobSubtitle && (
+                    <p className="text-muted text-[calc(0.75rem+2pt)]">
+                      {jobSubtitle}
+                    </p>
+                  )}
+                </div>
+                <ParticipantChips
+                  participants={displayParticipants}
+                  listClassName="shrink-0 sm:justify-end sm:pt-0.5"
+                />
+              </div>
             )}
             {thread && renamingThread && jobSubtitle && (
               <p
@@ -306,8 +357,8 @@ export default function ThreadDetailPage() {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input — bottom of column aligns with viewport via height calc (nav + main py-8) */}
-      <div className="shrink-0 border-t border-edge pt-4 pb-0">
+      {/* Input — extra pb so the bar sits comfortably above the viewport bottom */}
+      <div className="shrink-0 border-t border-edge pt-4 pb-0 mb-[calc(-0.5rem+6pt)]">
         <MessageInput onSend={handleSend} />
       </div>
     </div>

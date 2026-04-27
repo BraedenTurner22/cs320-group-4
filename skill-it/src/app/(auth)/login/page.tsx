@@ -1,75 +1,79 @@
-'use client'
+"use client";
 
-import { useState, FormEvent } from 'react'
-import { useRouter } from 'next/navigation'
-import Input from '@/components/ui/Input'
-import Button from '@/components/ui/Button'
-import ShaderGradientBg from '@/components/ui/ShaderGradientBg'
-import Link from 'next/link'
+import { useState, FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import Input from "@/components/ui/Input";
+import Button from "@/components/ui/Button";
+import Link from "next/link";
 
 export default function LoginPage() {
-  const router = useRouter()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
+    e.preventDefault();
+    setLoading(true);
+    setError("");
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
-      })
+      });
       if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || 'Login failed')
+        const data = await res.json();
+        throw new Error(data.error || "Login failed");
       }
-      router.push('/dashboard')
+      router.push("/dashboard");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Login failed')
+      setError(err instanceof Error ? err.message : "Login failed");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
   async function handleForgotPassword() {
     if (!email) {
-      setError('Enter your email first')
-      return
+      setError("Enter your email first");
+      return;
     }
     try {
-      await fetch('/api/auth/reset-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
-      })
-      setError('')
-      alert('Password reset email sent!')
+      });
+      setError("");
+      alert("Password reset email sent!");
     } catch {
-      setError('Failed to send reset email')
+      setError("Failed to send reset email");
     }
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden">
-      {/* Full-screen shader gradient */}
-      <ShaderGradientBg />
-
-      {/* Dark overlay — light enough to let the gradient breathe */}
-      <div className="absolute inset-0 bg-surface/40" />
-
+    <div className="flex min-h-screen items-center justify-center">
       {/* Glass card */}
-      <div className="relative z-10 w-full max-w-md rounded-2xl border border-edge/60 bg-raised/80 backdrop-blur-xl p-8 shadow-2xl shadow-surface">
-        <div className="mb-6">
-          <h1 className="text-3xl font-extrabold tracking-tight mb-1">
-            <span className="text-ember">Skill</span>
-            <span className="text-fg">-It</span>
-          </h1>
-          <p className="text-muted text-sm">Welcome back — sign in to continue</p>
+      <div className="w-full max-w-md rounded-2xl border border-edge/60 bg-raised/80 backdrop-blur-xl p-8 shadow-2xl shadow-surface">
+        <div className="mb-6 flex flex-col items-center text-center">
+          <div className="flex items-center gap-2 mb-2">
+            <h1 className="text-3xl font-extrabold tracking-tight">
+              <span className="text-ember">Skill</span>
+              <span className="text-fg">-It</span>
+            </h1>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/skillit_logo.png"
+              alt="Skill-It logo"
+              className="rounded-md"
+              style={{ width: 50, height: 50 }}
+            />
+          </div>
+          <p className="text-muted text-sm">
+            Welcome back — sign in to continue
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -97,7 +101,7 @@ export default function LoginPage() {
           )}
 
           <Button type="submit" disabled={loading} className="w-full mt-1">
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? "Signing in..." : "Sign In"}
           </Button>
         </form>
 
@@ -109,13 +113,16 @@ export default function LoginPage() {
             Forgot password?
           </button>
           <p className="text-muted">
-            No account?{' '}
-            <Link href="/signup" className="font-medium text-ember hover:text-ember-dark transition-colors">
+            No account?{" "}
+            <Link
+              href="/signup"
+              className="font-medium text-ember hover:text-ember-dark transition-colors"
+            >
               Sign up
             </Link>
           </p>
         </div>
       </div>
     </div>
-  )
+  );
 }

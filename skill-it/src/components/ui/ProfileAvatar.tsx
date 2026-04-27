@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { profileInitials } from '@/lib/profile-initials'
 
 const sizePx = { sm: 32, md: 40, lg: 96, xl: 128 } as const
@@ -18,14 +18,11 @@ export default function ProfileAvatar({
   size = 'md',
   className = '',
 }: ProfileAvatarProps) {
-  const [imgFailed, setImgFailed] = useState(false)
-
-  useEffect(() => {
-    setImgFailed(false)
-  }, [imageUrl])
+  /** When this equals `imageUrl`, the current URL failed to load; changing URL clears failure without an effect. */
+  const [failedForUrl, setFailedForUrl] = useState<string | null>(null)
 
   const px = sizePx[size]
-  const showImg = Boolean(imageUrl && !imgFailed)
+  const showImg = Boolean(imageUrl && failedForUrl !== imageUrl)
   const initials = profileInitials(name || '?')
 
   return (
@@ -42,7 +39,7 @@ export default function ProfileAvatar({
           width={px}
           height={px}
           className="size-full object-cover"
-          onError={() => setImgFailed(true)}
+          onError={() => imageUrl && setFailedForUrl(imageUrl)}
         />
       ) : (
         <span

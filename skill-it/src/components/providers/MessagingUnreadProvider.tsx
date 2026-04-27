@@ -102,13 +102,14 @@ export function MessagingUnreadProvider({ children }: { children: ReactNode }) {
   }, [refresh])
 
   useEffect(() => {
-    void refresh()
+    const t = window.setTimeout(() => void refresh(), 0)
     const interval = setInterval(() => void refresh(), 30_000)
     const onVis = () => {
       if (document.visibilityState === 'visible') void refresh()
     }
     document.addEventListener('visibilitychange', onVis)
     return () => {
+      window.clearTimeout(t)
       clearInterval(interval)
       document.removeEventListener('visibilitychange', onVis)
     }
