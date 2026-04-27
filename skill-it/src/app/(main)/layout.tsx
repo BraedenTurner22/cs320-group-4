@@ -12,5 +12,20 @@ export default async function MainLayout({
 
   if (!user) redirect('/login')
 
+  // Onboarding gate: new users who haven't filled in their profile yet
+  const { data: profileRow } = await supabase
+    .from('Profile')
+    .select('Description, Major, Graduation_Year')
+    .eq('auth_uid', user.id)
+    .single()
+
+  const needsOnboarding =
+    !profileRow ||
+    (profileRow.Description == null &&
+      profileRow.Major == null &&
+      profileRow.Graduation_Year == null)
+
+  if (needsOnboarding) redirect('/onboarding')
+
   return <MainAppShell>{children}</MainAppShell>
 }

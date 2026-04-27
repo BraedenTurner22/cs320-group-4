@@ -28,7 +28,7 @@ export default function SignupPage() {
         const data = await res.json()
         throw new Error(data.error || 'Signup failed')
       }
-      router.push('/dashboard')
+      router.push('/onboarding')
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Signup failed')
     } finally {
