@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useMessagingUnread } from '@/components/providers/MessagingUnreadProvider'
 import NavbarProfileMenu from '@/components/layout/NavbarProfileMenu'
 import UnreadBadge from '@/components/threads/UnreadBadge'
+import ThemeToggle from '@/components/ui/ThemeToggle'
 
 type NavbarProps = {
   isLoggedIn: boolean
@@ -15,7 +16,7 @@ function navItemClass(active: boolean) {
   return [
     'rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150 border',
     active
-      ? 'border-ember/35 bg-ember/[0.09] text-ember shadow-[inset_0_0_0_1px_rgba(220,38,38,0.12)]'
+      ? 'border-ember/35 bg-ember/[0.09] text-ember-text shadow-[inset_0_0_0_1px_rgba(220,38,38,0.12)]'
       : 'border-transparent text-muted hover:text-fg hover:bg-raised',
   ].join(' ')
 }
@@ -41,7 +42,7 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
     <nav className="sticky top-0 z-50 flex items-center justify-between border-b border-edge bg-high/80 backdrop-blur-md px-6 py-3">
       <Link href="/dashboard" className="flex items-center gap-2">
         <Image src="/skillit_logo.png" alt="Skill-It logo" width={48} height={48} className="rounded-sm w-[48px] h-[48px]" />
-        <span className="text-2xl font-extrabold text-ember tracking-tight">
+        <span className="text-2xl font-extrabold text-ember-text tracking-tight">
           Skill<span className="text-fg">-It</span>
         </span>
       </Link>
@@ -76,6 +77,7 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
             Dashboard
           </Link>
           <div className="ml-2 flex items-center gap-2 pl-2 border-l border-edge">
+            <ThemeToggle />
             <NavbarProfileMenu onLogout={handleLogout} />
           </div>
         </div>

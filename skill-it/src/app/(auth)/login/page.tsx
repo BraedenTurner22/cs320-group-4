@@ -60,7 +60,7 @@ export default function LoginPage() {
         <div className="mb-6 flex flex-col items-center text-center">
           <div className="flex items-center gap-2 mb-2">
             <h1 className="text-3xl font-extrabold tracking-tight">
-              <span className="text-ember">Skill</span>
+              <span className="text-ember-text">Skill</span>
               <span className="text-fg">-It</span>
             </h1>
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -108,7 +108,7 @@ export default function LoginPage() {
         <div className="mt-5 flex flex-col items-center gap-2 text-sm">
           <button
             onClick={handleForgotPassword}
-            className="text-muted hover:text-ember transition-colors cursor-pointer text-xs"
+            className="text-muted hover:text-ember-text transition-colors cursor-pointer text-xs"
           >
             Forgot password?
           </button>
@@ -116,7 +116,7 @@ export default function LoginPage() {
             No account?{" "}
             <Link
               href="/signup"
-              className="font-medium text-ember hover:text-ember-dark transition-colors"
+              className="font-medium text-ember-text transition-colors"
             >
               Sign up
             </Link>

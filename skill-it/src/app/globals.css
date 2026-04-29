@@ -8,6 +8,7 @@
   --color-fg: #F0EDE9;
   --color-muted: #BCB4AC;
   --color-ember: #881124;
+  --color-ember-text: #F0687A;
   --color-ember-dark: #4A0A12;
   --color-ember-dim: #2E0B10;
   --color-success: #52B788;
@@ -16,9 +17,35 @@
   --font-mono: var(--font-geist-mono);
 }
 
+[data-theme="light"] {
+  --color-surface: #F5F3F0;
+  --color-raised: #EDEBE7;
+  --color-high: #E5E2DE;
+  --color-edge: #C8C4BF;
+  --color-fg: #1E1B19;
+  --color-muted: #6B6360;
+  --color-ember-text: #881124;
+  --color-ember-dark: #6B0E1C;
+  --color-ember-dim: #FAE8EA;
+}
+
+html.theme-transitioning *,
+html.theme-transitioning *::before,
+html.theme-transitioning *::after,
+html.theme-transitioning input::placeholder,
+html.theme-transitioning textarea::placeholder {
+  transition:
+    background-color 200ms ease,
+    color 200ms ease,
+    border-color 200ms ease,
+    fill 200ms ease,
+    stroke 200ms ease,
+    box-shadow 200ms ease !important;
+}
+
 body {
   background-color: var(--color-surface);
-  color: #F0EDE9;
+  color: var(--color-fg);
   font-family: Arial, Helvetica, sans-serif;
 }
 
@@ -27,5 +54,5 @@ body {
 ::-webkit-scrollbar-thumb { background: var(--color-edge); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #881124; }
 
-select option { background-color: var(--color-raised); color: #F0EDE9; }
+select option { background-color: var(--color-raised); color: var(--color-fg); }
 

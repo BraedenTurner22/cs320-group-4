@@ -91,7 +91,7 @@ export default function ProfilePicturePage() {
       <div>
         <Link
           href="/dashboard"
-          className="text-sm font-medium text-muted hover:text-ember transition-colors"
+          className="text-sm font-medium text-muted hover:text-ember-text transition-colors"
         >
           ← Back
         </Link>

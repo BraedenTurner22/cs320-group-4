@@ -6,7 +6,7 @@ type BadgeProps = {
 }
 
 const colorStyles: Record<BadgeVariant, string> = {
-  orange: 'bg-ember/15 text-ember border border-ember/25',
+  orange: 'bg-ember/15 text-ember-text border border-ember/25',
   green:  'bg-success/15 text-success border border-success/25',
   dim:    'bg-high text-muted border border-edge',
   muted:  'bg-high/60 text-muted border border-edge/60',

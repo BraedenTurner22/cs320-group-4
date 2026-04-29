@@ -147,7 +147,7 @@ export default function EditProfilePage() {
       <div>
         <Link
           href="/dashboard"
-          className="text-sm font-medium text-muted hover:text-ember transition-colors"
+          className="text-sm font-medium text-muted hover:text-ember-text transition-colors"
         >
           ← Back
         </Link>
@@ -262,7 +262,7 @@ export default function EditProfilePage() {
       <div className="text-center">
         <Link 
           href="/profile/picture" 
-          className="text-sm text-muted hover:text-ember transition-colors font-medium"
+          className="text-sm text-muted hover:text-ember-text transition-colors font-medium"
         >
           Want to update your profile picture instead?
         </Link>
