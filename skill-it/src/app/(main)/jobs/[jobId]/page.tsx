@@ -1,12 +1,21 @@
 import Link from 'next/link'
 import { jobs } from '@/lib/services/jobs'
 import { profile } from '@/lib/services/profile'
+import { reviews } from '@/lib/services/reviews'
 import type { UserProfile } from '@/types'
 import Badge from '@/components/ui/Badge'
 import Card from '@/components/ui/Card'
 import JobDetailActions from './job-detail-actions'
 
 type Params = { params: Promise<{ jobId: string }> }
+
+type ReviewWithSubjectNames = {
+  rating: number
+  feedback: string
+  subjects: {id: number, name: string}
+}
+
+type ReviewList = ReviewWithSubjectNames[]
 
 export default async function JobDetailPage({ params }: Params) {
   const { jobId } = await params
@@ -33,6 +42,8 @@ export default async function JobDetailPage({ params }: Params) {
     isOwner ? jobs.getPendingRequests(Number(jobId)) : Promise.resolve([]),
   ])
 
+  // console.log(pendingReqsResult)
+
   const poster: UserProfile | null = posterResult.status === 'fulfilled' ? posterResult.value : null
   const acceptedWorkerProfiles =
     acceptedProfilesResult.status === 'fulfilled'
@@ -42,6 +53,30 @@ export default async function JobDetailPage({ params }: Params) {
     pendingReqsResult.status === 'fulfilled'
       ? pendingReqsResult.value.map((r) => ({ Username: r.Username, Email: r.Email, id: r.id }))
       : []
+
+  // Fetch reviews if job is completed and user is logged in
+  let reviewsWithSubjectNames: ReviewList = []
+  if (job.completed && currentProfileResult) {
+    const reviewsList = await reviews.getReviewByJobID(Number(jobId), currentProfileResult.id).catch(() => null)
+    
+    if (reviewsList && reviewsList.length > 0) {
+      reviewsWithSubjectNames = await Promise.all(
+        reviewsList.map(async (review) => {
+          const subjectProfiles = await profile.getByID(review.subject).catch(() => null)
+          
+          if (!subjectProfiles){
+            throw new Error("Subject Profile is null")
+          }
+
+          return {
+            rating: review.rating,
+            feedback: review.feedback,
+            subjects: { id: subjectProfiles.id, name: subjectProfiles.Username }
+          }
+        })
+      )
+    }
+  }
 
   return (
     <div className="flex flex-col gap-8 max-w-3xl">
@@ -112,6 +147,8 @@ export default async function JobDetailPage({ params }: Params) {
         isCompleted={job.completed}
         pendingRequests={pendingRequests}
         hasApplied={hasApplied}
+        reviews={reviewsWithSubjectNames}
+        acceptedWorkerProfiles={acceptedWorkerProfiles}
       />
     </div>
   )
