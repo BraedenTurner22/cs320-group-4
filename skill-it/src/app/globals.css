@@ -15,6 +15,9 @@
   --color-danger: #D44F3E;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --color-logo-skill: #FFFFFF;             
+  --color-logo-it: #FFFFFF;                
+  --logo-stroke: 1.5px var(--color-ember); 
 }
 
 [data-theme="light"] {
@@ -27,6 +30,9 @@
   --color-ember-text: #881124;
   --color-ember-dark: #6B0E1C;
   --color-ember-dim: #FAE8EA;
+  --color-logo-skill: #881124; 
+  --color-logo-it: var(--color-fg);      
+  --logo-stroke: 0px transparent;        
 }
 
 html.theme-transitioning *,

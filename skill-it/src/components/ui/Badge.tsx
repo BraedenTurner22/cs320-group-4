@@ -6,11 +6,11 @@ type BadgeProps = {
 }
 
 const colorStyles: Record<BadgeVariant, string> = {
-  orange: 'bg-ember/15 text-ember-text border border-ember/25',
-  green:  'bg-success/15 text-success border border-success/25',
+  orange: 'bg-ember text-white border border-transparent shadow-sm', 
+  green:  'bg-success/15 text-success border border-success/30',
   dim:    'bg-high text-muted border border-edge',
   muted:  'bg-high/60 text-muted border border-edge/60',
-  danger: 'bg-danger/15 text-danger border border-danger/25',
+  danger: 'bg-danger/15 text-danger border border-danger/30',
 }
 
 export default function Badge({ children, color = 'dim' }: BadgeProps) {

@@ -13,10 +13,16 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>('dark')
 
   useEffect(() => {
-    const stored = localStorage.getItem('theme') as Theme | null
-    const resolved = stored === 'light' ? 'light' : 'dark'
-    setTheme(resolved)
-    document.documentElement.setAttribute('data-theme', resolved)
+    // const stored = localStorage.getItem('theme') as Theme | null
+    // const resolved = stored === 'light' ? 'light' : 'dark'
+    // // setTheme(resolved)
+    // document.documentElement.setAttribute('data-theme', resolved)
+    setTimeout(() => {
+      const stored = localStorage.getItem('theme') as Theme | null
+      const resolved = stored === 'light' ? 'light' : 'dark'
+      setTheme(resolved)
+      document.documentElement.setAttribute('data-theme', resolved)
+    }, 0)
   }, [])
 
   function toggle() {

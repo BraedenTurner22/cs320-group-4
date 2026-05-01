@@ -53,15 +53,87 @@ export default function LoginPage() {
     }
   }
 
+  // return (
+  //   <div className="flex min-h-screen items-center justify-center">
+  //     {/* Glass card */}
+  //     <div className="w-full max-w-md rounded-2xl border border-edge/60 bg-raised/80 backdrop-blur-xl p-8 shadow-2xl shadow-surface">
+  //       <div className="mb-6 flex flex-col items-center text-center">
+  //         <div className="flex items-center gap-2 mb-2">
+  //           <h1 className="text-3xl font-extrabold tracking-tight">
+  //             <span className="text-ember-text">Skill</span>
+  //             <span className="text-fg">-It</span>
+  //           </h1>
+  //           {/* eslint-disable-next-line @next/next/no-img-element */}
+  //           <img
+  //             src="/skillit_logo.png"
+  //             alt="Skill-It logo"
+  //             className="rounded-md"
+  //             style={{ width: 50, height: 50 }}
+  //           />
+  //         </div>
+  //         <p className="text-muted text-sm">
+  //           Welcome back — sign in to continue
+  //         </p>
+  //       </div>
+
+  //       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+  //         <Input
+  //           label="Email"
+  //           type="email"
+  //           required
+  //           value={email}
+  //           onChange={(e) => setEmail(e.target.value)}
+  //           placeholder="you@umass.edu"
+  //         />
+  //         <Input
+  //           label="Password"
+  //           type="password"
+  //           required
+  //           value={password}
+  //           onChange={(e) => setPassword(e.target.value)}
+  //           placeholder="Your password"
+  //         />
+
+  //         {error && (
+  //           <p className="text-sm text-danger bg-danger/10 border border-danger/20 rounded-lg px-3 py-2">
+  //             {error}
+  //           </p>
+  //         )}
+
+  //         <Button type="submit" disabled={loading} className="w-full mt-1">
+  //           {loading ? "Signing in..." : "Sign In"}
+  //         </Button>
+  //       </form>
+
+  //       <div className="mt-5 flex flex-col items-center gap-2 text-sm">
+  //         <button
+  //           onClick={handleForgotPassword}
+  //           className="text-muted hover:text-ember-text transition-colors cursor-pointer text-xs"
+  //         >
+  //           Forgot password?
+  //         </button>
+  //         <p className="text-muted">
+  //           No account?{" "}
+  //           <Link
+  //             href="/signup"
+  //             className="font-medium text-ember-text transition-colors"
+  //           >
+  //             Sign up
+  //           </Link>
+  //         </p>
+  //       </div>
+  //     </div>
+  //   </div>
+  // );
   return (
     <div className="flex min-h-screen items-center justify-center">
       {/* Glass card */}
-      <div className="w-full max-w-md rounded-2xl border border-edge/60 bg-raised/80 backdrop-blur-xl p-8 shadow-2xl shadow-surface">
+      <div className="w-full max-w-md rounded-2xl bg-ember p-8 shadow-2xl">
         <div className="mb-6 flex flex-col items-center text-center">
           <div className="flex items-center gap-2 mb-2">
-            <h1 className="text-3xl font-extrabold tracking-tight">
-              <span className="text-ember-text">Skill</span>
-              <span className="text-fg">-It</span>
+            <h1 className="text-3xl font-extrabold tracking-tight text-white">
+              <span>Skill</span>
+              <span>-It</span>
             </h1>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -71,12 +143,12 @@ export default function LoginPage() {
               style={{ width: 50, height: 50 }}
             />
           </div>
-          <p className="text-muted text-sm">
+          <p className="text-white/80 text-sm">
             Welcome back — sign in to continue
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4 [&_label]:!text-white/80">
           <Input
             label="Email"
             type="email"
@@ -100,7 +172,11 @@ export default function LoginPage() {
             </p>
           )}
 
-          <Button type="submit" disabled={loading} className="w-full mt-1">
+          <Button
+            type="submit" 
+            disabled={loading} 
+            className="w-full mt-1 !bg-white !text-ember !hover:bg-white/90 border-transparent shadow-sm"
+          >
             {loading ? "Signing in..." : "Sign In"}
           </Button>
         </form>
@@ -108,15 +184,15 @@ export default function LoginPage() {
         <div className="mt-5 flex flex-col items-center gap-2 text-sm">
           <button
             onClick={handleForgotPassword}
-            className="text-muted hover:text-ember-text transition-colors cursor-pointer text-xs"
+            className="text-white/80 hover:text-white transition-colors cursor-pointer text-xs"
           >
             Forgot password?
           </button>
-          <p className="text-muted">
+          <p className="!text-white/80">
             No account?{" "}
             <Link
               href="/signup"
-              className="font-medium text-ember-text transition-colors"
+              className="font-bold text-white transition-colors hover:text-white/90 underline decoration-white/80 underline-offset-4"
             >
               Sign up
             </Link>
