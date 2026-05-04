@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/ui/Button'
 import ReviewCard from '@/components/reviews/ReviewCard'
+import Link from 'next/link'
 
 type PendingRequest = { Username: string; Email: string; id: number }
 
@@ -216,15 +217,18 @@ export default function JobDetailActions({
                     key={req.id}
                     className="flex items-center justify-between px-4 py-3 rounded-xl border border-edge bg-raised"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-ember/10 border border-ember/20 flex items-center justify-center text-ember-text font-bold text-sm flex-shrink-0">
+                    <Link 
+                      href={`/user/${req.id}`} 
+                      className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer"
+                    >
+                      <div className="w-9 h-9 rounded-full bg-ember/10 border border-ember/20 flex items-center justify-center text-ember font-bold text-sm flex-shrink-0">
                         {req.Username[0].toUpperCase()}
                       </div>
                       <div>
                         <p className="font-medium text-fg text-sm">{req.Username}</p>
                         <p className="text-xs text-muted">{req.Email}</p>
                       </div>
-                    </div>
+                    </Link>
                     <div className="flex items-center gap-2">
                       <Button
                         variant="danger"
@@ -240,8 +244,9 @@ export default function JobDetailActions({
                         Accept
                       </Button>
                     </div>
+
                   </div>
-                ))}
+                ))}         
               </div>
             ) : (
               <div className="py-8 text-center rounded-xl border border-dashed border-edge">

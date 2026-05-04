@@ -127,6 +127,28 @@ export const jobs = {
     })) as Job[]
   },
 
+  async getPostedByUserId(userId: number): Promise<Job[]> {
+    const supabase = createAdminClient() // bypass RLS
+    const { data, error } = await supabase
+      .from('Job')
+      .select('*, associated_skills:"Job-skills"("Skill"(*)), category:"Category-holder"("Category"(*))')
+      .eq('posted_by', userId)
+      .order('created_at', { ascending: false })
+    if (error) throw error
+    return data as Job[]
+  },
+
+  async getJoinedByUserId(userId: number): Promise<Job[]> {
+    const supabase = createAdminClient()
+    const { data, error } = await supabase
+      .from('Job')
+      .select('*, associated_skills:"Job-skills"("Skill"(*)), category:"Category-holder"("Category"(*))')
+      .filter('accepted_workers', 'cs', `{${userId}}`)
+      .order('created_at', { ascending: false })
+    if (error) throw error
+    return data as Job[]
+  },
+
   // Lifecycle
   async create(
     title: string,

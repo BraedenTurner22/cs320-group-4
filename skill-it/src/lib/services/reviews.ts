@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
-import type { Review } from '@/types'
+import type { MappedReview, Review } from '@/types'
+import { createAdminClient } from '../supabase/admin'
 
 export const reviews = {
   async createReview(
@@ -91,5 +92,35 @@ export const reviews = {
 
     // return review
     return listOfReviews
+  },
+
+  async getReviewsAboutSubject(subjectId: number): Promise<MappedReview[]>{
+    const supabase = createAdminClient()
+    
+    const { data: links, error } = await supabase
+      .from('Reviews-Author-Subject-Job')
+      .select('Review, Author')
+      .eq('Subject', subjectId)
+      
+    if (error || !links || links.length === 0) return []
+    
+    const reviewIds = links.map(l => l.Review)
+    const authorIds = [...new Set(links.map(l => l.Author))]
+    
+
+    const { data: reviewsData } = await supabase.from('Reviews').select('*').in('id', reviewIds)
+    const { data: authorsData } = await supabase.from('Profile').select('id, Username').in('id', authorIds)
+    
+
+    return links.map(link => {
+      const review = reviewsData?.find(r => r.id === link.Review)
+      const author = authorsData?.find(a => a.id === link.Author)
+      return {
+        id: review?.id || 0,
+        rating: review?.Rating || 5,
+        text: review?.Feedback || '',
+        authorName: author?.Username || 'Anonymous'
+      }
+    }).filter(r => r.text !== '')
   }
 }

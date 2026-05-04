@@ -81,3 +81,10 @@ export type Review = {
   feedback: string
   jobid: number
 }
+// new type for user/[id]
+export type MappedReview = {
+  id: number;
+  rating: number;
+  text: string;
+  authorName: string;
+};
