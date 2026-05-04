@@ -90,7 +90,7 @@ export default async function JobDetailPage({ params }: Params) {
       {/* Header */}
       <div className="flex flex-col gap-3">
         <div className="flex items-center gap-3">
-          <h1 className="text-3xl font-extrabold text-ember leading-tight">{job.title}</h1>
+          <h1 className="text-3xl font-extrabold text-ember-text leading-tight">{job.title}</h1>
           <Badge color={job.completed ? 'muted' : 'green'}>
             {job.completed ? 'Completed' : 'Open'}
           </Badge>

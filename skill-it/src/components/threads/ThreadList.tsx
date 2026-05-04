@@ -29,7 +29,7 @@ export default function ThreadList({
         <Link key={thread.id} href={`/messages/${thread.id}`}>
           <div className="group relative flex items-center justify-between rounded-xl border border-edge bg-raised px-4 py-3 pr-12 transition-all duration-200 hover:border-ember/40 hover:bg-high cursor-pointer">
             <div className="flex flex-col gap-0.5">
-              <h4 className="font-medium text-fg text-sm group-hover:text-ember transition-colors">
+              <h4 className="font-medium text-fg text-sm group-hover:text-ember-text transition-colors">
                 {thread['Thread name']}
               </h4>
               <span className="text-muted text-[calc(0.75rem+2pt)]">
@@ -44,7 +44,7 @@ export default function ThreadList({
                   Archived
                 </span>
               )}
-              <span className="text-muted/40 text-xs group-hover:text-ember transition-colors">→</span>
+              <span className="text-muted/40 text-xs group-hover:text-ember-text transition-colors">→</span>
             </div>
             <UnreadBadge
               count={unreadByThread[thread.id] ?? 0}

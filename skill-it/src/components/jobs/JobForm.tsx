@@ -231,7 +231,7 @@ export default function JobForm({ categories, skills: initialSkills, defCategory
             type="button"
             onClick={handleAddCustomSkill}
             disabled={customSkillLoading || !customSkillName.trim()}
-            className="rounded-xl border border-edge bg-high px-4 py-2.5 text-sm font-medium text-fg transition-all hover:border-ember/50 hover:text-ember disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            className="rounded-xl border border-edge bg-high px-4 py-2.5 text-sm font-medium text-fg transition-all hover:border-ember/50 hover:text-ember-text disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
           >
             {customSkillLoading ? '...' : '+ Add'}
           </button>

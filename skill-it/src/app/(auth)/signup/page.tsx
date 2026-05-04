@@ -28,7 +28,7 @@ export default function SignupPage() {
         const data = await res.json()
         throw new Error(data.error || 'Signup failed')
       }
-      router.push('/dashboard')
+      router.push('/onboarding')
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Signup failed')
     } finally {
@@ -41,7 +41,7 @@ export default function SignupPage() {
       <div className="w-full max-w-md rounded-2xl border border-edge/60 bg-raised/80 backdrop-blur-xl p-8 shadow-2xl shadow-surface">
         <div className="mb-6">
           <h1 className="text-3xl font-extrabold tracking-tight mb-1">
-            <span className="text-ember">Skill</span>
+            <span className="text-ember-text">Skill</span>
             <span className="text-fg">-It</span>
           </h1>
           <p className="text-muted text-sm">Create your account to get started</p>
@@ -86,7 +86,7 @@ export default function SignupPage() {
 
         <p className="mt-5 text-center text-sm text-muted">
           Already have an account?{' '}
-          <Link href="/login" className="font-medium text-ember hover:text-ember-dark transition-colors">
+          <Link href="/login" className="font-medium text-ember-text transition-colors">
             Sign in
           </Link>
         </p>
