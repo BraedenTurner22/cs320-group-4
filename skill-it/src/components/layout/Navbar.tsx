@@ -6,17 +6,27 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useMessagingUnread } from '@/components/providers/MessagingUnreadProvider'
 import NavbarProfileMenu from '@/components/layout/NavbarProfileMenu'
 import UnreadBadge from '@/components/threads/UnreadBadge'
+import ThemeToggle from '@/components/ui/ThemeToggle'
 
 type NavbarProps = {
   isLoggedIn: boolean
 }
 
+// function navItemClass(active: boolean) {
+//   return [
+//     'rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150 border',
+//     active
+//       ? 'bg-ember text-white border-transparent shadow-sm'
+//       : 'border-transparent text-muted hover:text-fg hover:bg-raised',
+//   ].join(' ')
+// }
+
 function navItemClass(active: boolean) {
   return [
     'rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150 border',
     active
-      ? 'border-ember/35 bg-ember/[0.09] text-ember shadow-[inset_0_0_0_1px_rgba(220,38,38,0.12)]'
-      : 'border-transparent text-muted hover:text-fg hover:bg-raised',
+      ? 'bg-white text-ember border-transparent shadow-sm'
+      : 'border-transparent text-white hover:bg-white/10',
   ].join(' ')
 }
 
@@ -38,13 +48,26 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
   }
 
   return (
-    <nav className="sticky top-0 z-50 flex items-center justify-between border-b border-edge bg-high/80 backdrop-blur-md px-6 py-3">
-      <Link href="/dashboard" className="flex items-center gap-2">
-        <Image src="/skillit_logo.png" alt="Skill-It logo" width={48} height={48} className="rounded-sm w-[48px] h-[48px]" />
-        <span className="text-2xl font-extrabold text-ember tracking-tight">
-          Skill<span className="text-fg">-It</span>
-        </span>
-      </Link>
+    // <nav className="sticky top-0 z-50 flex items-center justify-between border-b border-edge bg-white/90 backdrop-blur-md px-6 py-3">
+    //   <Link href="/dashboard" className="flex items-center gap-2">
+    //     <Image src="/skillit_logo.png" alt="Skill-It logo" width={48} height={48} className="rounded-sm w-[48px] h-[48px]" />
+    //     {/* <span className="text-2xl font-extrabold text-ember tracking-tight">
+    //       Skill<span className="text-fg">-It</span>
+    //     </span> */}
+    //     <div className="text-2xl font-extrabold tracking-tight [-webkit-text-stroke:var(--logo-stroke)]">
+    //       <span className="text-[color:var(--logo-skill-color)]">Skill</span>
+    //       <span className="text-[color:var(--logo-it-color)]">-It</span>
+    //     </div>
+    //   </Link>
+
+  <nav className="sticky top-0 z-50 flex items-center justify-between border-b border-ember-dark bg-ember text-white px-6 py-3 shadow-sm">
+    <Link href="/dashboard" className="flex items-center gap-2">
+      <Image src="/skillit_logo.png" alt="Skill-It logo" width={48} height={48} className="rounded-sm w-[48px] h-[48px]" />
+      <div className="text-2xl font-extrabold tracking-tight text-white">
+        <span>Skill</span>
+        <span>-It</span>
+      </div>
+  </Link>
 
       {isLoggedIn && (
         <div className="flex items-center gap-1">
@@ -76,6 +99,7 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
             Dashboard
           </Link>
           <div className="ml-2 flex items-center gap-2 pl-2 border-l border-edge">
+            <ThemeToggle />
             <NavbarProfileMenu onLogout={handleLogout} />
           </div>
         </div>

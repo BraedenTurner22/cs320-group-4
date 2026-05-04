@@ -5,7 +5,7 @@ export default function ProfileSettingsPage() {
     <div className="mx-auto max-w-lg py-8">
       <Link
         href="/dashboard"
-        className="text-sm font-medium text-muted hover:text-ember transition-colors"
+        className="text-sm font-medium text-muted hover:text-ember-text transition-colors"
       >
         ← Back
       </Link>

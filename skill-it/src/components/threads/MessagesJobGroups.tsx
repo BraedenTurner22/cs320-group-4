@@ -78,7 +78,7 @@ export default function MessagesJobGroups({
               <Link key={thread.id} href={`/messages/${thread.id}`}>
                 <div className="group relative flex items-center justify-between rounded-xl px-4 py-3 pr-12 transition-colors hover:bg-raised cursor-pointer">
                   <div className="flex flex-col gap-0.5 min-w-0">
-                    <h3 className="font-medium text-fg text-sm group-hover:text-ember transition-colors truncate">
+                    <h3 className="font-medium text-fg text-sm group-hover:text-ember-text transition-colors truncate">
                       {thread['Thread name']}
                     </h3>
                   </div>
@@ -88,7 +88,7 @@ export default function MessagesJobGroups({
                         Archived
                       </span>
                     )}
-                    <span className="text-muted/40 text-xs group-hover:text-ember transition-colors">→</span>
+                    <span className="text-muted/40 text-xs group-hover:text-ember-text transition-colors">→</span>
                   </div>
                   <UnreadBadge
                     count={unreadByThread[thread.id] ?? 0}

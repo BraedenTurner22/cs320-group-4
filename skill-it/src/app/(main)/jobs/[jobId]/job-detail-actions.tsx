@@ -204,7 +204,7 @@ export default function JobDetailActions({
             <div className="flex items-center gap-2 mb-3">
               <p className="text-xs font-semibold text-muted uppercase tracking-wider">Applicants</p>
               {requests.length > 0 && (
-                <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold bg-ember/15 text-ember border border-ember/25">
+                <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold bg-ember/15 text-ember-text border border-ember/25">
                   {requests.length}
                 </span>
               )}
@@ -217,7 +217,7 @@ export default function JobDetailActions({
                     className="flex items-center justify-between px-4 py-3 rounded-xl border border-edge bg-raised"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-ember/10 border border-ember/20 flex items-center justify-center text-ember font-bold text-sm flex-shrink-0">
+                      <div className="w-9 h-9 rounded-full bg-ember/10 border border-ember/20 flex items-center justify-center text-ember-text font-bold text-sm flex-shrink-0">
                         {req.Username[0].toUpperCase()}
                       </div>
                       <div>
